@@ -10,18 +10,11 @@
   },
   "plugins": [
     {
-      "name": "deep-dive",
-      "description": "Structured workflow for complex tasks: research (gather information) → innovate (explore solutions) → plan (create implementation steps). Use for any non-trivial development task.",
+      "name": "team-skills",
+      "description": "AI-assisted development workflow: deep-dive phases (research → innovate → plan) and GitHub issue management (plan, implement, create, compact). Use for structured software development.",
       "source": "./",
       "strict": false,
-      "skills": ["./deep-dive"]
-    },
-    {
-      "name": "github-workflow",
-      "description": "AI-assisted GitHub issue management: plan issues with deep-dive workflow, implement approved plans, create issues from conversations, and consolidate discussions.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./github-workflow"]
+      "skills": ["./deep-dive", "./github-workflow"]
     }
   ]
 }

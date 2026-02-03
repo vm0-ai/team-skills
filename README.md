@@ -19,9 +19,8 @@ This repository provides structured workflows for software development with AI a
 # Add marketplace
 /plugin marketplace add vm0-ai/team-skills
 
-# Install specific skills
-/plugin install deep-dive@team-skills
-/plugin install github-workflow@team-skills
+# Install the plugin
+/plugin install team-skills@team-skills
 ```
 
 ### Direct Download
