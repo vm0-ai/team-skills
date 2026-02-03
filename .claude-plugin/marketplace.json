@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "team-skills",
+      "name": "deep-dive",
       "description": "AI-assisted development workflow: deep-dive phases (research → innovate → plan) and GitHub issue management (plan, implement, create, compact). Use for structured software development.",
       "source": "./",
       "strict": false,
