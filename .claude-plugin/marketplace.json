@@ -1,0 +1,27 @@
+{
+  "name": "team-skills",
+  "owner": {
+    "name": "vm0.ai",
+    "email": "support@vm0.ai"
+  },
+  "metadata": {
+    "description": "AI-assisted development workflow skills for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "deep-dive",
+      "description": "Structured workflow for complex tasks: research (gather information) → innovate (explore solutions) → plan (create implementation steps). Use for any non-trivial development task.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./deep-dive"]
+    },
+    {
+      "name": "github-workflow",
+      "description": "AI-assisted GitHub issue management: plan issues with deep-dive workflow, implement approved plans, create issues from conversations, and consolidate discussions.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./github-workflow"]
+    }
+  ]
+}
