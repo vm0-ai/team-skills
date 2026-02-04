@@ -24,7 +24,7 @@ The deep dive workflow consists of three phases:
 2. **Innovate** (`/deep-innovate`) - Brainstorm solutions, evaluate trade-offs
 3. **Plan** (`/deep-plan`) - Create concrete implementation steps
 
-Each phase builds on the previous one. Artifacts are stored in `/tmp/deep-dive/{task-name}/`.
+Each phase builds on the previous one. Artifacts are stored in `deep-dive/{task-name}/`.
 
 ---
 
@@ -55,7 +55,7 @@ Information gathering phase. Analyze the codebase without suggesting solutions.
 
 1. **Clarification** - Ask questions to understand the scope
 2. **Research** - Systematically analyze relevant code
-3. **Documentation** - Record findings to `/tmp/deep-dive/{task-name}/research.md`
+3. **Documentation** - Record findings to `deep-dive/{task-name}/research.md`
 4. **Completion** - Summarize findings (facts only), ask what to do next
 
 ## Thinking Principles
@@ -73,7 +73,7 @@ Information gathering phase. Analyze the codebase without suggesting solutions.
 
 ## Prerequisites
 
-Research document must exist at `/tmp/deep-dive/{task-name}/research.md`
+Research document must exist at `deep-dive/{task-name}/research.md`
 
 ## Purpose
 
@@ -99,7 +99,7 @@ Creative brainstorming phase. Explore multiple approaches based on research find
 1. **Review** - Read research document, summarize key findings
 2. **Exploration** - Generate 2-3 distinct solution approaches
 3. **Analysis** - Document pros/cons, trade-offs for each
-4. **Documentation** - Create `/tmp/deep-dive/{task-name}/innovate.md`
+4. **Documentation** - Create `deep-dive/{task-name}/innovate.md`
 5. **Discussion** - Present approaches, gather user feedback
 
 ## For Each Approach Document
@@ -119,8 +119,8 @@ Creative brainstorming phase. Explore multiple approaches based on research find
 ## Prerequisites
 
 Both documents must exist:
-- `/tmp/deep-dive/{task-name}/research.md`
-- `/tmp/deep-dive/{task-name}/innovate.md`
+- `deep-dive/{task-name}/research.md`
+- `deep-dive/{task-name}/innovate.md`
 
 ## Purpose
 
@@ -147,7 +147,7 @@ Transform research and innovation into a concrete implementation plan.
 2. **Task Breakdown** - Identify discrete work items, order by dependency
 3. **Specification** - For each task: description, files affected, acceptance criteria
 4. **Risk Assessment** - Identify challenges, external dependencies
-5. **Documentation** - Create `/tmp/deep-dive/{task-name}/plan.md`
+5. **Documentation** - Create `deep-dive/{task-name}/plan.md`
 6. **Approval** - Present plan, get explicit approval before implementation
 
 ## Plan Document Structure
@@ -163,7 +163,7 @@ Transform research and innovation into a concrete implementation plan.
 
 ## Artifacts
 
-All artifacts are stored in `/tmp/deep-dive/{task-name}/`:
+All artifacts are stored in `deep-dive/{task-name}/`:
 
 | File | Phase | Content |
 |------|-------|---------|
