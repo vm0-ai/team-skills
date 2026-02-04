@@ -37,7 +37,7 @@ gh issue view {issue-id} --json title,body,comments,labels
 
 ### Step 2: Check for Existing Artifacts
 
-Look for existing work in `/tmp/deep-dive/*/`:
+Look for existing work in `deep-dive/*/`:
 - `research.md` - Research phase completed
 - `innovate.md` - Innovation phase completed
 - `plan.md` - Plan phase completed
@@ -60,9 +60,9 @@ Run phases automatically in sequence (no user confirmation between phases):
 After each phase, post the artifact as a comment:
 
 ```bash
-gh issue comment {issue-id} --body-file /tmp/deep-dive/{task-name}/research.md
-gh issue comment {issue-id} --body-file /tmp/deep-dive/{task-name}/innovate.md
-gh issue comment {issue-id} --body-file /tmp/deep-dive/{task-name}/plan.md
+gh issue comment {issue-id} --body-file deep-dive/{task-name}/research.md
+gh issue comment {issue-id} --body-file deep-dive/{task-name}/innovate.md
+gh issue comment {issue-id} --body-file deep-dive/{task-name}/plan.md
 ```
 
 ---
@@ -78,7 +78,7 @@ Continue working on a GitHub issue from conversation context, following the appr
 ### Step 1: Retrieve Context
 
 1. Find issue ID from conversation history
-2. Locate deep-dive artifacts in `/tmp/deep-dive/{task-name}/`
+2. Locate deep-dive artifacts in `deep-dive/{task-name}/`
 
 ### Step 2: Fetch Latest Updates
 
@@ -219,7 +219,7 @@ Add compact metadata:
 ### Step 4: Update Issue
 
 ```bash
-gh issue edit {issue-id} --body-file /tmp/issue-{issue-id}-compact.md
+gh issue edit {issue-id} --body-file issue-{issue-id}-compact.md
 ```
 
 ### Step 5: Delete Comments
