@@ -1,0 +1,5 @@
+{
+  "name": "coding-team",
+  "description": "Autonomous coding worker orchestration — issue/PR handoff, load-balanced assignment, and adaptive worker loop for multi-agent development.",
+  "version": "1.0.0"
+}
