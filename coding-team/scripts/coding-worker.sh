@@ -234,25 +234,66 @@ EOF
       ;;
 
     ci_running_no_review)
-      # Delete old review comments directly
-      echo "$PR_STATUS_JSON" | jq -r '.review.review_comment_ids[]' 2>/dev/null | \
-        while read -r id; do
-          gh api -X DELETE "repos/${REPO}/issues/comments/$id" 2>/dev/null || true
-        done
+      # Check if we already reviewed this commit (review comment may not contain HEAD SHA)
+      REVIEWED_HEAD_FILE="/tmp/pr-${PR_NUMBER}-reviewed-head"
+      REVIEWED_HEAD=$(cat "$REVIEWED_HEAD_FILE" 2>/dev/null || echo "")
+      HEAD_SHA=$(echo "$PR_STATUS_JSON" | jq -r '.head_sha')
 
-      output_action
-      cat <<EOF
-Spawn a subagent: /pr-review ${PR_NUMBER}
+      if [ "$REVIEWED_HEAD" = "$HEAD_SHA" ]; then
+        # Already reviewed but fix didn't complete — retry fix based on existing review
+        output_action
+        cat <<EOF
+Spawn a subagent to fix review findings on PR #${PR_NUMBER} (branch: ${BRANCH}).
 
-After review:
-- If P0/P1 issues found: git checkout ${BRANCH}, fix all P0/P1 issues, push, then git checkout main && git pull
-- If no P0/P1 issues: run gh pr merge ${PR_NUMBER} --merge --auto, then git checkout main && git pull
+This commit (${HEAD_SHA}) was already reviewed. Read the latest "## Code Review" comment on PR #${PR_NUMBER}.
+
+- If P0/P1 issues found: git checkout ${BRANCH}, fix all issues, run pre-commit checks (cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest), commit and push, then git checkout main && git pull
+- If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, then git checkout main && git pull
 EOF
+      else
+        # New commit — delete old review comments, run fresh review
+        echo "$PR_STATUS_JSON" | jq -r '.review.review_comment_ids[]' 2>/dev/null | \
+          while read -r id; do
+            gh api -X DELETE "repos/${REPO}/issues/comments/$id" 2>/dev/null || true
+          done
+
+        output_action
+        cat <<EOF
+Spawn a subagent to review and fix PR #${PR_NUMBER} (branch: ${BRANCH}).
+
+Steps:
+1. Run /pr-review ${PR_NUMBER}
+2. echo "${HEAD_SHA}" > /tmp/pr-${PR_NUMBER}-reviewed-head
+3. If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, git checkout main && git pull. Stop.
+4. git checkout ${BRANCH}, fix all P0/P1 issues
+5. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
+6. Commit and push, then git checkout main && git pull
+EOF
+      fi
       exit 0
       ;;
 
     ci_running_reviewed)
-      # Nothing to do for this PR — fall through to Phase B
+      # Review exists for current HEAD — check if P0/P1 need fixing
+      REVIEW_BODY=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+        --jq '[.[] | select(.body | test("## Code Review"))] | last | .body // ""' 2>/dev/null || echo "")
+
+      if echo "$REVIEW_BODY" | grep -q 'Changes Requested'; then
+        output_action
+        cat <<EOF
+Spawn a subagent to fix review findings on PR #${PR_NUMBER} (branch: ${BRANCH}).
+
+Read the Code Review comment on PR #${PR_NUMBER} and fix all P0/P1 issues.
+
+Steps:
+1. git checkout ${BRANCH}
+2. Fix all P0/P1 issues listed in the review
+3. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
+4. Commit and push, then git checkout main && git pull
+EOF
+        exit 0
+      fi
+      # LGTM — fall through to Phase B
       ;;
 
     ci_passed)
