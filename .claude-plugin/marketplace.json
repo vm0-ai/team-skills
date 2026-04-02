@@ -10,16 +10,15 @@
   },
   "plugins": [
     {
-      "name": "deep-dive",
-      "description": "AI-assisted development workflow: deep-dive phases (research → innovate → plan) and GitHub issue management (plan, implement, create, compact). Use for structured software development.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./deep-dive", "./github-workflow"]
-    },
-    {
       "name": "coding-team",
       "description": "Autonomous coding worker orchestration — issue/PR handoff, load-balanced assignment, and adaptive worker loop for multi-agent development.",
       "source": "./coding-team",
+      "strict": true
+    },
+    {
+      "name": "skill-manager",
+      "description": "Manage Claude Code skills — migrate skills from a project into a team-skills marketplace plugin.",
+      "source": "./skill-manager",
       "strict": true
     }
   ]

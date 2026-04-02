@@ -1,0 +1,5 @@
+{
+  "name": "skill-manager",
+  "description": "Manage Claude Code skills — migrate skills from a project into a team-skills marketplace plugin.",
+  "version": "1.0.0"
+}
