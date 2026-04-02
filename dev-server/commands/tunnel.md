@@ -1,5 +1,5 @@
 ---
-command: dev-tunnel
+command: tunnel
 description: Full dev setup with tunnel (automatic) and CLI authentication
 ---
 

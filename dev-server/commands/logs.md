@@ -1,5 +1,5 @@
 ---
-command: dev-logs
+command: logs
 description: View development server logs with optional filtering
 ---
 

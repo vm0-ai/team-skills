@@ -1,5 +1,5 @@
 ---
-command: dev-start-github
+command: start-github
 description: Start the development server with a fixed GitHub tunnel URL
 ---
 

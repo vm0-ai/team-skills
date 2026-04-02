@@ -1,5 +1,5 @@
 ---
-command: dev-start
+command: start
 description: Start the development server in background mode
 ---
 
