@@ -1,0 +1,5 @@
+{
+  "name": "github-workflow",
+  "description": "GitHub issue and PR workflow automation — issue planning, PR review loops, CI check loops, and merge orchestration.",
+  "version": "1.0.0"
+}

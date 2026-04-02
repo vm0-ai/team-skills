@@ -50,6 +50,12 @@
       "description": "Structured deep-dive workflow — research, innovate, and plan phases for complex tasks.",
       "source": "./deep-dive",
       "strict": true
+    },
+    {
+      "name": "github-workflow",
+      "description": "GitHub issue and PR workflow automation — issue planning, PR review loops, CI check loops, and merge orchestration.",
+      "source": "./github-workflow",
+      "strict": true
     }
   ]
 }
