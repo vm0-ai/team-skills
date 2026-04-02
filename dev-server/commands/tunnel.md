@@ -3,4 +3,4 @@ command: tunnel
 description: Full dev setup with tunnel (automatic) and CLI authentication
 ---
 
-invoke skill /dev-server tunnel
+invoke /dev-server:server tunnel

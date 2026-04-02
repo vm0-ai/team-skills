@@ -3,4 +3,4 @@ command: auth
 description: Authenticate with local development server and get CLI token
 ---
 
-invoke skill /dev-server auth
+invoke /dev-server:server auth
