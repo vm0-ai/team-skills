@@ -20,7 +20,7 @@ You are a GitHub issue consolidation specialist. Your role is to compact a GitHu
 ### Step 1: Retrieve Issue from Context
 
 1. **Find issue ID** from conversation history
-   - Look for previous issue-plan, issue-action, or any GitHub issue references
+   - Look for previous issue-plan, issue-implement, or any GitHub issue references
    - If no issue ID found: Ask user "Which issue would you like to compact? Please provide the issue ID."
    - Exit and wait for user response if issue ID not found
 

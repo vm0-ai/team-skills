@@ -123,10 +123,10 @@ For each missing phase, execute in order, then post comments to the issue:
 ### Step 4: Finalize
 
 1. **Add pending label**: Use `gh issue edit {issue-id} --add-label pending` to wait for user approval
-2. **Remember issue ID**: Store issue ID in context for future issue-action invocations
+2. **Remember issue ID**: Store issue ID in context for future issue-implement invocations
 3. **Update todo:** Mark "Add pending label and finalize" as completed
 4. **Verify all todos are complete**: Check your todo list - ALL items should be marked as completed before exiting
-5. **Exit and wait**: Stop here and wait for user to review the plan and invoke issue-action skill
+5. **Exit and wait**: Stop here and wait for user to review the plan and invoke issue-implement skill
 
 ## Label Management
 

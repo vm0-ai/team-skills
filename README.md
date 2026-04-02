@@ -59,7 +59,7 @@ AI-assisted GitHub issue management:
 | Skill | Description |
 |-------|-------------|
 | `issue-plan` | Start working on an issue with full deep-dive workflow |
-| `issue-action` | Continue implementation based on approved plan |
+| `issue-implement` | Continue implementation based on approved plan |
 | `issue-create` | Create issues from conversation context |
 | `issue-compact` | Consolidate issue discussion into clean body |
 

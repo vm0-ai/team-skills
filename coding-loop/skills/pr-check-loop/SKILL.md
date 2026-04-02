@@ -61,17 +61,17 @@ Once you have the PR number, **hardcode it as a literal** in all subsequent bash
 
 ### 1b: Create Driver Script
 
-Write this script to `/tmp/github-workflow:pr-check-loop-driver.sh` and make it executable:
+Write this script to `/tmp/pr-check-loop-driver.sh` and make it executable:
 
 ```bash
-cat > /tmp/github-workflow:pr-check-loop-driver.sh << 'DRIVER'
+cat > /tmp/pr-check-loop-driver.sh << 'DRIVER'
 #!/bin/bash
 set -euo pipefail
 
 PR="$1"
 CMD="$2"
-STATE="/tmp/github-workflow:pr-check-loop-${PR}.state"
-FIXES="/tmp/github-workflow:pr-check-loop-${PR}.fixes"
+STATE="/tmp/pr-check-loop-${PR}.state"
+FIXES="/tmp/pr-check-loop-${PR}.fixes"
 
 case "$CMD" in
   init)
@@ -121,13 +121,13 @@ case "$CMD" in
     ;;
 esac
 DRIVER
-chmod +x /tmp/github-workflow:pr-check-loop-driver.sh
+chmod +x /tmp/pr-check-loop-driver.sh
 ```
 
 ### 1c: Initialize
 
 ```bash
-ACTION=$(/tmp/github-workflow:pr-check-loop-driver.sh "$PR_NUMBER" init)
+ACTION=$(/tmp/pr-check-loop-driver.sh "$PR_NUMBER" init)
 # Output: ACTION: REVIEW_PR
 ```
 
@@ -152,14 +152,14 @@ Look for review comments containing patterns like:
 - "LGTM"
 - "Changes Requested"
 
-**If no review found**: Execute `/github-workflow:pr-review` to analyze the PR and post findings.
+**If no review found**: Execute `/pr-review` to analyze the PR and post findings.
 
 **If review exists**: Skip to next action.
 
 Report to driver:
 
 ```bash
-ACTION=$(/tmp/github-workflow:pr-check-loop-driver.sh "$PR_NUMBER" review-done)
+ACTION=$(/tmp/pr-check-loop-driver.sh "$PR_NUMBER" review-done)
 # Output: ACTION: WAIT
 ```
 
@@ -178,7 +178,7 @@ sleep 60
 Report to driver:
 
 ```bash
-ACTION=$(/tmp/github-workflow:pr-check-loop-driver.sh "$PR_NUMBER" wait-done)
+ACTION=$(/tmp/pr-check-loop-driver.sh "$PR_NUMBER" wait-done)
 # Output: ACTION: CHECK
 ```
 
@@ -236,7 +236,7 @@ Rebase onto main to resolve:
 Report to driver:
 
 ```bash
-ACTION=$(/tmp/github-workflow:pr-check-loop-driver.sh "$PR_NUMBER" check-done "$STATUS")
+ACTION=$(/tmp/pr-check-loop-driver.sh "$PR_NUMBER" check-done "$STATUS")
 ```
 
 Follow the returned ACTION.
@@ -264,7 +264,7 @@ git push
 Report to driver:
 
 ```bash
-ACTION=$(/tmp/github-workflow:pr-check-loop-driver.sh "$PR_NUMBER" fix-done)
+ACTION=$(/tmp/pr-check-loop-driver.sh "$PR_NUMBER" fix-done)
 # Output: ACTION: WAIT
 ```
 
@@ -290,7 +290,7 @@ Manual Intervention Required
 The following issues cannot be auto-fixed:
 - <issue type>: <details>
 
-Please fix manually and re-run /github-workflow:pr-check-loop
+Please fix manually and re-run /pr-check-loop
 ```
 
 Go to Phase 3.
@@ -318,11 +318,11 @@ Go to Phase 3.
 ### Check if Fixes Were Made
 
 ```bash
-FIXES=$(cat /tmp/github-workflow:pr-check-loop-${PR_NUMBER}.fixes)
-ITER=$(cat /tmp/github-workflow:pr-check-loop-${PR_NUMBER}.state)
+FIXES=$(cat /tmp/pr-check-loop-${PR_NUMBER}.fixes)
+ITER=$(cat /tmp/pr-check-loop-${PR_NUMBER}.state)
 ```
 
-If fixes > 0, run `/github-workflow:pr-review` again to review the auto-fixed code.
+If fixes > 0, run `/pr-review` again to review the auto-fixed code.
 
 ### Final Report
 

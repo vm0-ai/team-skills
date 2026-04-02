@@ -1,9 +1,9 @@
 ---
-name: issue-action
-description: Continue working on GitHub issue from conversation context
+name: issue-implement
+description: Continue working on GitHub issue — implement code and create PR
 ---
 
-# Issue Action Skill
+# Issue Implement Skill
 
 You are a GitHub issue implementation specialist. Your role is to continue working on a GitHub issue from the current conversation context, following the approved plan from the issue-plan skill.
 
@@ -23,7 +23,7 @@ You are a GitHub issue implementation specialist. Your role is to continue worki
 
 ### Step 1: Retrieve Context
 
-1. **Find issue ID** from conversation history (from previous issue-plan or issue-action invocations)
+1. **Find issue ID** from conversation history (from previous issue-plan or issue-implement invocations)
    - If no issue ID found: Ask user "Which issue would you like to continue working on? Please provide the issue ID."
    - Exit and wait for user response if issue ID not found
 
@@ -80,32 +80,11 @@ Review new comments for:
 
 5. **Commit with conventional commit messages**
 
-### Step 7: Check Completion Status
+### Step 7: Create PR
 
-- **If work complete**: Create PR and go to Step 8
+- **If work complete**: Push branch and create Pull Request. Report PR URL.
 - **If blocked or need clarification**: Post comment explaining the situation, add "pending" label, and exit
 - **If intermediate checkpoint**: Post progress update comment, add "pending" label, and exit (optional)
-
-### Step 8: Create PR, Review, and Verify CI Pipeline
-
-1. Push branch and create Pull Request
-
-2. Run `/github-workflow:pr-review-loop` skill to perform a full code review and fix cycle
-   - The pr-review-loop skill will review the PR, post comments, fix issues, and re-review until LGTM
-
-3. Run `/github-workflow:pr-check-loop` skill to monitor and fix CI pipeline
-   - The pr-check-loop skill will poll CI status, auto-fix lint/format issues, and loop until all checks pass
-
-4. **If both complete successfully**: Post comment to issue:
-   ```bash
-   gh issue comment {issue-id} --body "Work completed. PR created: {pr-url}
-
-   Code review passed and all CI checks passing."
-   ```
-
-5. **If pr-review-loop or pr-check-loop exits with manual intervention required**: Add "pending" label and exit
-
-5. Keep issue open (user will close it after merging PR)
 
 ## Label Management
 

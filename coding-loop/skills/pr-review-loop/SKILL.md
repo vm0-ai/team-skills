@@ -120,7 +120,7 @@ Read the ACTION output from the driver script and execute the corresponding acti
 
 invoke skill /code-quality review ${PR_NUMBER}
 
-2. Perform testing coverage and convention review (same checks as `/github-workflow:pr-review`):
+2. Perform testing coverage and convention review (same checks as `/pr-review`):
    - Identify changed source files from PR diff
    - Check test coverage for new features and bug fixes
    - Check testing conventions against project standards

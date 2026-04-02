@@ -1,0 +1,5 @@
+{
+  "name": "coding-loop",
+  "description": "Automated coding loops — PR review, CI check, merge queue monitoring, and issue-to-merge orchestration.",
+  "version": "1.0.0"
+}

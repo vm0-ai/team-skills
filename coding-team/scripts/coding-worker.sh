@@ -331,14 +331,14 @@ Issue content: ${CONTENT_DIR}/issues/${ISSUE_NUMBER}.md
 Check if the issue already has a plan (a comment starting with "# Plan:").
 
 If a plan exists:
-1. Run /issue-action
+1. Run /issue-implement
 2. After PR is created, add label: gh pr edit <PR_NUMBER> --add-label "${LABEL}"
 3. When done: git checkout main && git pull
 
 If no plan exists:
 1. Run /issue-plan
 2. When done: git checkout main && git pull
-3. Do NOT run /issue-action in this iteration. Implementation will happen in the next iteration.
+3. Do NOT run /issue-implement in this iteration. Implementation will happen in the next iteration.
 EOF
     fi
     exit 0

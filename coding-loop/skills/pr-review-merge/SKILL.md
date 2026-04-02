@@ -26,7 +26,7 @@ Run these three skills **sequentially**. Each skill must complete before startin
 ### Step 1: Review Loop
 
 ```
-invoke skill /github-workflow:pr-review-loop <PR_NUMBER>
+invoke skill /pr-review-loop <PR_NUMBER>
 ```
 
 Iteratively review the PR, post findings, fix P0/P1 issues, and repeat until LGTM or max iterations.
@@ -36,7 +36,7 @@ Iteratively review the PR, post findings, fix P0/P1 issues, and repeat until LGT
 ### Step 2: Check Loop
 
 ```
-invoke skill /github-workflow:pr-check-loop <PR_NUMBER>
+invoke skill /pr-check-loop <PR_NUMBER>
 ```
 
 Monitor CI pipeline, auto-fix lint/format issues, and loop until all checks pass.
@@ -46,7 +46,7 @@ Monitor CI pipeline, auto-fix lint/format issues, and loop until all checks pass
 ### Step 3: Merge Loop
 
 ```
-invoke skill /github-workflow:pr-merge-loop <PR_NUMBER>
+invoke skill /pr-merge-loop <PR_NUMBER>
 ```
 
 Add PR to merge queue, monitor progress, auto-recover from ejections and conflicts, and loop until merged.

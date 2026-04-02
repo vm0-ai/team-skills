@@ -204,7 +204,7 @@ When merge queue is enabled, this command adds the PR to the queue rather than m
 
 **If the command fails:**
 - "not mergeable" or "merge conflict" → report `ejected conflict`
-- "required status check" or CI related → report `enqueue-failed ci-not-ready` and exit (use `/github-workflow:pr-check` first)
+- "required status check" or CI related → report `enqueue-failed ci-not-ready` and exit (use `/pr-check` first)
 - Other error → report `enqueue-failed <error>` and exit
 
 **If successful:**
@@ -357,7 +357,7 @@ CI failed in the merge queue build. This might be a flaky test or an actual issu
    ```bash
    ACTION=$(/tmp/pr-merge-loop-driver.sh "<PR_NUMBER>" recovery-failed)
    ```
-   Report the specific failure and exit. Use `/github-workflow:pr-check` to fix CI issues.
+   Report the specific failure and exit. Use `/pr-check` to fix CI issues.
 
 #### Reason: `DEQUEUED` or other
 
@@ -383,7 +383,7 @@ gh pr checks <PR_NUMBER>
 **Decision:**
 - All non-skipped checks pass → report `ci-ready` (driver will re-enqueue)
 - Any check still `pending` → report `ci-pending` (driver will wait more)
-- Any check `fail` → report `ci-fail` (driver will exit — use `/github-workflow:pr-check` to fix)
+- Any check `fail` → report `ci-fail` (driver will exit — use `/pr-check` to fix)
 
 ```bash
 ACTION=$(/tmp/pr-merge-loop-driver.sh "<PR_NUMBER>" ci-ready)
@@ -449,7 +449,7 @@ Recoveries: <count>
 
 enqueue-failed:
   Could not add PR to merge queue. Ensure CI checks are passing first.
-  Run /github-workflow:pr-check to diagnose and fix CI issues.
+  Run /pr-check to diagnose and fix CI issues.
 
 queue-timeout:
   PR was in merge queue for over 60 minutes. Check GitHub merge queue status.
@@ -462,10 +462,10 @@ recovery-failed:
   <specific details about what failed>
 
 ci-timeout:
-  CI checks did not pass within 30 minutes after recovery. Run /github-workflow:pr-check to diagnose.
+  CI checks did not pass within 30 minutes after recovery. Run /pr-check to diagnose.
 
 ci-failure:
-  CI checks failed after recovery push. Run /github-workflow:pr-check to fix.
+  CI checks failed after recovery push. Run /pr-check to fix.
 
 pr-closed:
   PR was closed without merging. Check if this was intentional.
@@ -475,7 +475,7 @@ pr-closed:
 
 ## Important Notes
 
-1. **Enqueue first, ask questions later.** This skill assumes CI is already passing when invoked. If enqueue fails due to CI, it exits immediately and recommends `/github-workflow:pr-check`.
+1. **Enqueue first, ask questions later.** This skill assumes CI is already passing when invoked. If enqueue fails due to CI, it exits immediately and recommends `/pr-check`.
 
 2. **Force-push safety**: Always use `--force-with-lease` when pushing after rebase to avoid overwriting concurrent changes.
 
