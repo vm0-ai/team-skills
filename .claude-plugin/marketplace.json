@@ -15,6 +15,12 @@
       "source": "./",
       "strict": false,
       "skills": ["./deep-dive", "./github-workflow"]
+    },
+    {
+      "name": "coding-team",
+      "description": "Autonomous coding worker orchestration — issue/PR handoff, load-balanced assignment, and adaptive worker loop for multi-agent development.",
+      "source": "./coding-team",
+      "strict": false
     }
   ]
 }
