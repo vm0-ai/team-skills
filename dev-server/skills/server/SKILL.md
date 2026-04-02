@@ -1,5 +1,5 @@
 ---
-name: dev-server
+name: server
 description: Development server lifecycle management for the vm0 project
 context: main
 ---
@@ -102,7 +102,7 @@ Proceed to Step 4 as normal. No Slack notification is sent.
 
 After `prepare.sh` completes successfully, start the dev server using Bash tool with `run_in_background: true` parameter.
 
-**Important**: Use `tee` to write output to a persistent log file so `/dev-logs` works even after context compaction. The log file is the primary way `/dev-logs` reads output.
+**Important**: Use `tee` to write output to a persistent log file so `/logs` works even after context compaction. The log file is the primary way `/logs` reads output.
 
 If `--tunnel-hostname=<fqdn>` was provided in args, pass it as `TUNNEL_HOSTNAME` env var:
 
@@ -140,9 +140,9 @@ Once the server is confirmed running, display the URLs:
 The app is usable now. Chat/agent features will become available once the runner finishes initializing.
 
 Next steps:
-- Use `/dev-logs` to view server output
-- Use `/dev-logs [pattern]` to filter logs (e.g., `/dev-logs error`)
-- Use `/dev-stop` to stop the server
+- Use `/logs` to view server output
+- Use `/logs [pattern]` to filter logs (e.g., `/logs error`)
+- Use `/server stop` to stop the server
 ```
 
 ## Notes
@@ -183,7 +183,7 @@ curl -k -s --connect-timeout 3 https://www.vm7.ai:8443/ > /dev/null 2>&1 && echo
 ```
 ✅ Dev server stopped successfully
 
-You can start it again with `/dev-start`
+You can start it again with `/server start`
 ```
 
 **If process still detected**:
@@ -197,16 +197,16 @@ Try manual cleanup: pkill -f "pnpm dev"
 ```
 ℹ️ No dev server is currently running
 
-Use `/dev-start` to start one
+Use `/server start` to start one
 ```
 
 ---
 
 # Operation: logs
 
-Delegate to the `dev-logs` skill. Extract the optional filter pattern from args (e.g. `logs error` → pattern is `error`) and invoke:
+Delegate to the `logs` skill. Extract the optional filter pattern from args (e.g. `logs error` → pattern is `error`) and invoke:
 
-invoke skill /dev-logs <pattern>
+invoke skill /logs <pattern>
 
 ---
 
@@ -216,7 +216,7 @@ Authenticate with local development server and get CLI token.
 
 ## Prerequisites
 
-- Dev server must be running (use `/dev-start` first)
+- Dev server must be running (use `/server start` first)
 - Clerk test credentials must be configured in environment
 
 ## Workflow
@@ -230,7 +230,7 @@ if curl -k -s --connect-timeout 3 https://www.vm7.ai:8443/ > /dev/null 2>&1; the
   echo "✅ Dev server is accessible at https://www.vm7.ai:8443"
 else
   echo "❌ Dev server is not accessible"
-  echo "Please run /dev-start first or check if server is running"
+  echo "Please run /server start first or check if server is running"
   exit 1
 fi
 ```
@@ -313,7 +313,7 @@ You can now use the CLI with local dev server:
 ## Error Handling
 
 If authentication fails:
-- Check dev server logs with `/dev-logs`
+- Check dev server logs with `/logs`
 - Verify Clerk credentials in `turbo/apps/web/.env.local`
 - Ensure Playwright browser is installed
 
@@ -352,7 +352,7 @@ cd "$PROJECT_ROOT/turbo" && pnpm build
 
 Use Bash tool with `run_in_background: true` for **both** commands in parallel (two separate Bash calls in the same message):
 
-**Dev server** (use `tee` to persist logs for `/dev-logs` after context compaction):
+**Dev server** (use `tee` to persist logs for `/logs` after context compaction):
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd "$PROJECT_ROOT/turbo" && pnpm dev 2>&1 | tee "$PROJECT_ROOT/turbo/.dev-server.log"
@@ -440,7 +440,7 @@ Auth token saved to: ~/.vm0/config.json
 
 The app is usable now. Chat/agent features will become available once the runner finishes initializing.
 
-Use `/dev-stop` to stop the server.
+Use `/server stop` to stop the server.
 ```
 
 ## Technical Details
@@ -458,7 +458,7 @@ If tunnel fails to start:
 - Check tunnel logs: `tail -f /tmp/cloudflared-dev.log`
 
 If authentication fails:
-- Check dev server logs with `/dev-logs`
+- Check dev server logs with `/logs`
 - Verify Clerk credentials in `turbo/apps/web/.env.local`
 - Ensure Playwright browser is installed
 

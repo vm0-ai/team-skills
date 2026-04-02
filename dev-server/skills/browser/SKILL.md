@@ -1,5 +1,5 @@
 ---
-name: dev-browser
+name: browser
 description: Start dev server and interact with the platform via agent-browser. Use when user asks to browse, test, or demo the platform UI, connect services, or perform any browser-based interaction with the local dev environment.
 ---
 
@@ -17,7 +17,7 @@ Before any browser interaction, ensure the dev server is running. The VNC stack 
 
 ### Step 1: Start Dev Server
 
-Use the `/dev-start` skill to start the dev server if not already running. Wait for it to be ready.
+Use the `/server start` skill to start the dev server if not already running. Wait for it to be ready.
 
 ### Step 2: Authenticate Browser
 

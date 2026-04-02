@@ -1,5 +1,5 @@
 ---
-name: dev-runner
+name: runner
 description: Deploy runner to metal host for local development. Use when user needs to run agents (CLI, frontend sessions, scheduled jobs) with local dev server.
 ---
 
@@ -85,7 +85,7 @@ Steps in progress:
 3. Build rootfs + snapshot for all profiles (vm0/default)
 4. Start runner service
 
-Use `/dev-logs` pattern to monitor. You'll be notified when it completes.
+Use `/logs` pattern to monitor. You'll be notified when it completes.
 The runner will connect to your local web server's tunnel automatically.
 ```
 

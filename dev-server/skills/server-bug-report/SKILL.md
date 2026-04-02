@@ -1,5 +1,5 @@
 ---
-name: dev-server-bug-report
+name: server-bug-report
 description: Analyze conversation history for dev server errors and create a structured GitHub bug report
 context: main
 ---
@@ -27,7 +27,7 @@ Scan the current conversation for traces of the following 7 dev server operation
 | `pnpm dev` startup | `cd turbo && pnpm dev` via `run_in_background`, build failures, port conflicts, missing deps |
 | Health check | `pnpm dev:status`, curl to `https://www.vm7.ai:8443` / `app.vm7.ai:8443` / `docs.vm7.ai:8443` |
 | Database migration | `pnpm db:migrate` (Drizzle ORM + PostgreSQL), connection failures, migration errors |
-| Log viewing | `TaskOutput` reads, `/dev-logs` invocations, runtime errors in output |
+| Log viewing | `TaskOutput` reads, `/logs` invocations, runtime errors in output |
 | SSL certificates | Caddy auto-provisions via Let's Encrypt DNS-01 challenge, requires `CF_DNS_AND_TUNNEL_API_TOKEN` |
 | Chrome/VNC | `scripts/start-vnc.sh` (Xvfb + openbox + x11vnc + noVNC + Chrome CDP:9222), crashes, CDP unreachable |
 | Agent-Browser | `agent-browser open/snapshot/click`, `agent-browser.json` config, CDP connection failures, timeouts |
@@ -106,7 +106,7 @@ Organize the issue body with the following sections:
 [Any other relevant information from the conversation]
 
 ---
-*Created from conversation context by `/dev-server-bug-report`*
+*Created from conversation context by `/server-bug-report`*
 ```
 
 ### Guidelines
