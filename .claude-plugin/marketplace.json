@@ -44,6 +44,12 @@
       "description": "Development server lifecycle management — start/stop/restart, logs, browser automation, runner deployment, and bug reporting.",
       "source": "./dev-server",
       "strict": true
+    },
+    {
+      "name": "deep-dive",
+      "description": "Structured deep-dive workflow — research, innovate, and plan phases for complex tasks.",
+      "source": "./deep-dive",
+      "strict": true
     }
   ]
 }
