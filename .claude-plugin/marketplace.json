@@ -17,7 +17,7 @@
     },
     {
       "name": "skill-manager",
-      "description": "Manage Claude Code skills — migrate skills from a project into a team-skills marketplace plugin.",
+      "description": "Manage Claude Code skills — create, migrate, and alias skills in the team-skills marketplace.",
       "source": "./skill-manager",
       "strict": true
     },
