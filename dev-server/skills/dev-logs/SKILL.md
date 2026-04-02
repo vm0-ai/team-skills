@@ -1,5 +1,5 @@
 ---
-name: logs
+name: dev-logs
 description: View development server logs with optional filtering
 ---
 
@@ -14,9 +14,9 @@ Your args are: `$ARGUMENTS`
 
 ## Examples
 
-- `/logs` - Show recent dev server output
-- `/logs error` - Show only error messages
-- `/logs "compiled|ready"` - Show compilation status
+- `/dev-logs` - Show recent dev server output
+- `/dev-logs error` - Show only error messages
+- `/dev-logs "compiled|ready"` - Show compilation status
 
 ## Workflow
 
@@ -47,7 +47,7 @@ If the file exists and contains a task ID, use **TaskOutput** with that ID (`blo
 If the file does not exist, fall back to **TaskList** to find a task whose command contains `pnpm dev`.
 
 If neither method finds a task, inform the user:
-- "No dev server logs found. Please run `/server start` to start the server."
+- "No dev server logs found. Please run `/dev-start` to start the server."
 
 ### Step 3: Display Output
 

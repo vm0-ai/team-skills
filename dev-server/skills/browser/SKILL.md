@@ -17,7 +17,7 @@ Before any browser interaction, ensure the dev server is running. The VNC stack 
 
 ### Step 1: Start Dev Server
 
-Use the `/server start` skill to start the dev server if not already running. Wait for it to be ready.
+Use the `/dev-start` skill to start the dev server if not already running. Wait for it to be ready.
 
 ### Step 2: Authenticate Browser
 

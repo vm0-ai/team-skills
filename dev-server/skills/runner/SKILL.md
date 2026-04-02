@@ -85,7 +85,7 @@ Steps in progress:
 3. Build rootfs + snapshot for all profiles (vm0/default)
 4. Start runner service
 
-Use `/logs` pattern to monitor. You'll be notified when it completes.
+Use `/dev-logs` pattern to monitor. You'll be notified when it completes.
 The runner will connect to your local web server's tunnel automatically.
 ```
 
