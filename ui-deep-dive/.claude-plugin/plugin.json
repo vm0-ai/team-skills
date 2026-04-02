@@ -1,0 +1,5 @@
+{
+  "name": "ui-deep-dive",
+  "description": "Generate UI design variants for GitHub issues — snapshot baseline, create variants, publish to GitHub Pages.",
+  "version": "1.0.0"
+}

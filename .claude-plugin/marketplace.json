@@ -20,6 +20,18 @@
       "description": "Manage Claude Code skills — migrate skills from a project into a team-skills marketplace plugin.",
       "source": "./skill-manager",
       "strict": true
+    },
+    {
+      "name": "observability",
+      "description": "Query logs from Axiom for debugging and observability.",
+      "source": "./observability",
+      "strict": true
+    },
+    {
+      "name": "ui-deep-dive",
+      "description": "Generate UI design variants for GitHub issues — snapshot baseline, create variants, publish to GitHub Pages.",
+      "source": "./ui-deep-dive",
+      "strict": true
     }
   ]
 }

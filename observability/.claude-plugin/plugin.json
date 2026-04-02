@@ -1,0 +1,5 @@
+{
+  "name": "observability",
+  "description": "Query logs from Axiom for debugging and observability.",
+  "version": "1.0.0"
+}
