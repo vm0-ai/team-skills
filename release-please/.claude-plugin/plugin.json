@@ -1,0 +1,5 @@
+{
+  "name": "release-please",
+  "description": "Fix bugs in the forked release-please ecosystem (vm0-ai/release-please + vm0-ai/release-please-action).",
+  "version": "1.0.0"
+}

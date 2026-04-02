@@ -32,6 +32,12 @@
       "description": "Generate UI design variants for GitHub issues — snapshot baseline, create variants, publish to GitHub Pages.",
       "source": "./ui-deep-dive",
       "strict": true
+    },
+    {
+      "name": "release-please",
+      "description": "Fix bugs in the forked release-please ecosystem (vm0-ai/release-please + vm0-ai/release-please-action).",
+      "source": "./release-please",
+      "strict": true
     }
   ]
 }
