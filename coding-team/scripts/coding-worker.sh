@@ -35,8 +35,15 @@ output_idle() {
     current=$(cat "$STATE_FILE")
   fi
   local next=$((current * 2))
-  if [ "$next" -gt 30 ]; then
-    next=30
+  local max_interval=30
+  local dow hour
+  dow=$(TZ=Asia/Shanghai date +%u)
+  hour=$(TZ=Asia/Shanghai date +%-H)
+  if [ "$dow" -ge 1 ] && [ "$dow" -le 5 ] && [ "$hour" -ge 10 ] && [ "$hour" -lt 19 ]; then
+    max_interval=5
+  fi
+  if [ "$next" -gt "$max_interval" ]; then
+    next=$max_interval
   fi
   echo "$next" > "$STATE_FILE"
   echo "INTERVAL:${next}"
