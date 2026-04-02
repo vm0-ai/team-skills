@@ -1,0 +1,5 @@
+{
+  "name": "dev-server",
+  "description": "Development server lifecycle management — start/stop/restart, logs, browser automation, runner deployment, and bug reporting.",
+  "version": "1.0.0"
+}
