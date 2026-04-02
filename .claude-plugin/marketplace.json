@@ -56,6 +56,12 @@
       "description": "GitHub issue and PR workflow automation — issue planning, PR review loops, CI check loops, and merge orchestration.",
       "source": "./github-workflow",
       "strict": true
+    },
+    {
+      "name": "coding-loop",
+      "description": "Automated coding loops — PR review, CI check, merge queue monitoring, and issue-to-merge orchestration.",
+      "source": "./coding-loop",
+      "strict": true
     }
   ]
 }
