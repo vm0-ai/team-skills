@@ -233,61 +233,45 @@ EOF
       exit 0
       ;;
 
-    ci_running_no_review)
-      # Check if we already reviewed this commit (review comment may not contain HEAD SHA)
-      REVIEWED_HEAD_FILE="/tmp/pr-${PR_NUMBER}-reviewed-head"
-      REVIEWED_HEAD=$(cat "$REVIEWED_HEAD_FILE" 2>/dev/null || echo "")
-      HEAD_SHA=$(echo "$PR_STATUS_JSON" | jq -r '.head_sha')
+    no_review)
+      # Delete old review comments and run fresh review
+      echo "$PR_STATUS_JSON" | jq -r '.review.review_comment_ids[]' 2>/dev/null | \
+        while read -r id; do
+          gh api -X DELETE "repos/${REPO}/issues/comments/$id" 2>/dev/null || true
+        done
 
-      if [ "$REVIEWED_HEAD" = "$HEAD_SHA" ]; then
-        # Already reviewed but fix didn't complete — retry fix based on existing review
-        output_action
-        cat <<EOF
-Spawn a subagent to fix review findings on PR #${PR_NUMBER} (branch: ${BRANCH}).
-
-This commit (${HEAD_SHA}) was already reviewed. Read the latest "## Code Review" comment on PR #${PR_NUMBER}.
-
-- If P0/P1 issues found: git checkout ${BRANCH}, fix all issues, run pre-commit checks (cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest), commit and push, then git checkout main && git pull
-- If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, then git checkout main && git pull
-EOF
-      else
-        # New commit — delete old review comments, run fresh review
-        echo "$PR_STATUS_JSON" | jq -r '.review.review_comment_ids[]' 2>/dev/null | \
-          while read -r id; do
-            gh api -X DELETE "repos/${REPO}/issues/comments/$id" 2>/dev/null || true
-          done
-
-        output_action
-        cat <<EOF
+      output_action
+      cat <<EOF
 Spawn a subagent to review and fix PR #${PR_NUMBER} (branch: ${BRANCH}).
 
 Steps:
-1. Run /pr-review ${PR_NUMBER}
-2. echo "${HEAD_SHA}" > /tmp/pr-${PR_NUMBER}-reviewed-head
-3. If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, git checkout main && git pull. Stop.
-4. git checkout ${BRANCH}, fix all P0/P1 issues
-5. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
-6. Commit and push, then git checkout main && git pull
+1. Run /github-workflow:pr-review ${PR_NUMBER}
+2. If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, git checkout main && git pull. Stop.
+3. git checkout ${BRANCH}, fix all P0/P1 issues
+4. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
+5. Commit and push, then git checkout main && git pull
 EOF
-      fi
       exit 0
       ;;
 
     ci_running_reviewed)
       # Review exists for current HEAD — check if P0/P1 need fixing
-      REVIEW_BODY=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
-        --jq '[.[] | select(.body | test("## Code Review"))] | last | .body // ""' 2>/dev/null || echo "")
+      REVIEW_JSON=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+        --jq '[.[] | select(.body | test("## Code Review"))] | last // empty' 2>/dev/null || echo "")
+      REVIEW_BODY=$(echo "$REVIEW_JSON" | jq -r '.body // ""')
 
       if echo "$REVIEW_BODY" | grep -q 'Changes Requested'; then
+        REVIEW_COMMENT_ID=$(echo "$REVIEW_JSON" | jq -r '.id')
+        REVIEW_URL="https://github.com/${REPO}/pull/${PR_NUMBER}#issuecomment-${REVIEW_COMMENT_ID}"
         output_action
         cat <<EOF
 Spawn a subagent to fix review findings on PR #${PR_NUMBER} (branch: ${BRANCH}).
 
-Read the Code Review comment on PR #${PR_NUMBER} and fix all P0/P1 issues.
+Review comment: ${REVIEW_URL}
 
 Steps:
 1. git checkout ${BRANCH}
-2. Fix all P0/P1 issues listed in the review
+2. Read the review comment above and fix all P0/P1 issues
 3. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
 4. Commit and push, then git checkout main && git pull
 EOF
@@ -323,9 +307,48 @@ EOF
         exit 0
       fi
 
-      # No ejection — enable auto-merge directly, no subagent needed
-      gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --auto 2>/dev/null || true
-      # Fall through to Phase B
+      # No ejection — check review verdict before merging
+      REVIEW_JSON=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+        --jq '[.[] | select(.body | test("## Code Review"))] | last // empty' 2>/dev/null || echo "")
+      REVIEW_BODY=$(echo "$REVIEW_JSON" | jq -r '.body // ""')
+
+      if echo "$REVIEW_BODY" | grep -q 'Changes Requested'; then
+        REVIEW_COMMENT_ID=$(echo "$REVIEW_JSON" | jq -r '.id')
+        REVIEW_URL="https://github.com/${REPO}/pull/${PR_NUMBER}#issuecomment-${REVIEW_COMMENT_ID}"
+        output_action
+        cat <<EOF
+Spawn a subagent to fix review findings on PR #${PR_NUMBER} (branch: ${BRANCH}).
+
+CI has passed but the review requested changes.
+Review comment: ${REVIEW_URL}
+
+Steps:
+1. git checkout ${BRANCH}
+2. Read the review comment above and fix all P0/P1 issues
+3. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
+4. Commit and push, then git checkout main && git pull
+EOF
+        exit 0
+      elif echo "$REVIEW_BODY" | grep -q 'LGTM'; then
+        gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --auto 2>/dev/null || true
+        # Fall through to Phase B
+      else
+        # No clear verdict — let agent review and decide
+        output_action
+        cat <<EOF
+Spawn a subagent to review PR #${PR_NUMBER} (branch: ${BRANCH}).
+
+CI has passed but no clear review verdict was found.
+
+Steps:
+1. Run /github-workflow:pr-review ${PR_NUMBER}
+2. If no P0/P1 issues: gh pr merge ${PR_NUMBER} --merge --auto, git checkout main && git pull. Stop.
+3. git checkout ${BRANCH}, fix all P0/P1 issues
+4. Run pre-commit checks: cd turbo && pnpm format && pnpm turbo run lint && pnpm check-types && pnpm vitest
+5. Commit and push, then git checkout main && git pull
+EOF
+        exit 0
+      fi
       ;;
   esac
 fi

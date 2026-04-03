@@ -52,12 +52,12 @@ if [[ "$MERGEABLE" == "CONFLICTING" ]]; then
   STATUS="conflict"
 elif [[ "$HAS_FAILURE" == "true" ]]; then
   STATUS="ci_failing"
+elif [[ "$HAS_REVIEW" == "false" ]]; then
+  STATUS="no_review"
 elif [[ "$ALL_PASSED" == "true" ]]; then
   STATUS="ci_passed"
-elif [[ "$HAS_REVIEW" == "true" ]]; then
-  STATUS="ci_running_reviewed"
 else
-  STATUS="ci_running_no_review"
+  STATUS="ci_running_reviewed"
 fi
 
 jq -n \
