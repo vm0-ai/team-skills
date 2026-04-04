@@ -3,7 +3,12 @@ name: begin-coding-worker
 description: Start an adaptive coding loop that dynamically adjusts interval based on activity — short intervals when busy, longer when idle.
 ---
 
-1. Run `${CLAUDE_PLUGIN_ROOT}/scripts/coding-worker.sh ${ARGUMENTS:-$(hostname)}` and capture the stdout.
+1. Determine the worker label and run the coding worker script, capturing stdout:
+   ```bash
+   PROJECT_ROOT=$(git rev-parse --show-toplevel)
+   _LABEL="${ARGUMENTS:-$("$PROJECT_ROOT/scripts/cn.sh")}"
+   ${CLAUDE_PLUGIN_ROOT}/scripts/coding-worker.sh "$_LABEL"
+   ```
 2. Parse the first line `INTERVAL:N` and save N.
 3. Use CronList to check if a recurring cron job for `/begin-coding-worker` already exists.
    - If a matching job exists **and** its interval differs from N minutes, delete it with CronDelete and create a new recurring cron with `*/N * * * *` and prompt `/begin-coding-worker $ARGUMENTS`.

@@ -56,7 +56,7 @@ If the command above exits with a non-zero code, do the following **before** rep
 1. **Gather diagnostic info** by running:
 
 ```bash
-echo "HOSTNAME: $(hostname)"
+echo "HOSTNAME: $(bash "$(git rev-parse --show-toplevel)/scripts/cn.sh")"
 echo "BRANCH: $(git branch --show-current)"
 echo "--- LAST 20 LINES ---"
 tail -20 /tmp/prepare-output.log
