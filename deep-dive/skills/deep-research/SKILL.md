@@ -27,6 +27,7 @@ This ensures consistency with project standards and accessibility for all contri
 - Tracing code flow and relationships
 - Identifying technical debt or limitations
 - Recording findings to research file
+- Searching the web for community solutions, known issues, and official documentation (via WebSearch/WebFetch)
 
 **ABSOLUTELY FORBIDDEN:**
 - Suggestions of any kind
@@ -44,6 +45,7 @@ Apply these thinking approaches during research:
 - **Dialectical Thinking**: Understand multiple aspects and their trade-offs (but do NOT suggest which is better)
 - **Critical Thinking**: Verify understanding from multiple angles
 - **Mapping**: Clearly separate known elements from unknown elements
+- **Community Awareness**: When the investigation involves third-party APIs, SDKs, or common patterns, search for community solutions, known issues, and official documentation — most technical problems have been encountered before
 
 ## RESEARCH WORKFLOW
 
@@ -64,6 +66,7 @@ Before diving into code, ask the user any clarifying questions needed to underst
    - Map the architecture relevant to the task
    - Document technical constraints discovered
    - Note any unclear areas or gaps in understanding
+   - When third-party dependencies or common patterns are involved, research community solutions and official documentation for relevant context
 
 3. **Record findings** to the research file as you go. You decide what's important and how to organize it. Keep it natural and useful for later reference.
 
