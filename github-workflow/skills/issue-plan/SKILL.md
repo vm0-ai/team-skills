@@ -37,6 +37,7 @@ If no issue ID is provided in args, ask the user: "Which issue would you like to
 - Commit messages must follow Conventional Commits specification (feat / fix / docs / refactor / test / chore)
 - Follow the small iteration principle: implement small, focused changes with corresponding test cases
 - **Include test strategy in the plan following `/testing` conventions**
+- **For user-facing features, include a feature switch** — consult `/feature-switch` skill for patterns. New UI pages, API endpoints, integrations, and sidebar items must be gated behind a `FeatureSwitchKey`
 - After each change, run relevant tests to verify functionality before proceeding
 - When fixing bugs: reproduce via tests first, then fix, then verify tests pass
 - In regression testing: fix failed tests one at a time, verify each individually
