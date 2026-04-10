@@ -73,6 +73,7 @@ Review new comments for:
 
 3. **Implement changes following plan.md exactly**:
    - Follow the implementation steps in order
+   - For new user-facing features, register a `FeatureSwitchKey` and gate the feature — consult `/feature-switch` skill for step-by-step instructions
    - Do not deviate from the approved plan without user approval
    - If plan is unclear or needs adjustment, post comment and add "pending" label
 

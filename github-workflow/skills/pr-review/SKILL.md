@@ -76,6 +76,7 @@ Review all test files in the PR diff against the project testing standards:
 | No over-testing | No tests that only verify Zod schemas, HTTP status codes, or UI text | P1 |
 | Mock cleanup | `vi.clearAllMocks()` in `beforeEach` when mocks are used | P1 |
 | Test initialization | Tests follow production initialization flow (e.g., `setupPage()` for platform) | P1 |
+| Feature switch gating | New user-facing features (UI pages, API routes, sidebar items, integrations) must be gated behind a `FeatureSwitchKey` — see `/feature-switch` skill | P1 |
 
 #### 4d: Generate Testing Verdict
 
