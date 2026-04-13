@@ -4,7 +4,7 @@
 #   scripts/pr-status.sh <pr-number>
 #
 # Output: JSON with classified status:
-#   "conflict" | "ci_failing" | "ci_running_no_review" | "ci_running_reviewed" | "ci_passed"
+#   "merged" | "conflict" | "ci_failing" | "no_review" | "ci_running_reviewed" | "ci_passed"
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 # Run 3 queries in parallel
-gh pr view "$PR" --repo "$REPO" --json mergeable,headRefOid \
+gh pr view "$PR" --repo "$REPO" --json state,mergeable,headRefOid \
   > "$WORK_DIR/pr_view.json" &
 
 gh pr checks "$PR" --repo "$REPO" --json name,state,bucket \
@@ -32,6 +32,7 @@ gh api "repos/$REPO/issues/$PR/comments" \
 wait
 
 # Parse results
+STATE=$(jq -r '.state' "$WORK_DIR/pr_view.json")
 MERGEABLE=$(jq -r '.mergeable' "$WORK_DIR/pr_view.json")
 HEAD_SHA=$(jq -r '.headRefOid' "$WORK_DIR/pr_view.json")
 HEAD_SHORT="${HEAD_SHA:0:7}"
@@ -48,7 +49,9 @@ HAS_REVIEW=$(jq --arg sha "$HEAD_SHORT" \
 REVIEW_IDS=$(jq '[.[].id]' "$WORK_DIR/reviews.json")
 
 # Classify status
-if [[ "$MERGEABLE" == "CONFLICTING" ]]; then
+if [[ "$STATE" == "MERGED" ]]; then
+  STATUS="merged"
+elif [[ "$MERGEABLE" == "CONFLICTING" ]]; then
   STATUS="conflict"
 elif [[ "$HAS_FAILURE" == "true" ]]; then
   STATUS="ci_failing"
