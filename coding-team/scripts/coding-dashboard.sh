@@ -34,8 +34,11 @@ LAST_LANE=$(printf "vm%02d" "$MAX_WORKERS")
 "$SCRIPT_DIR/pipeline-status.sh" > "$WORK_DIR/pipeline.json" &
 PID_PIPELINE=$!
 
-"$SCRIPT_DIR/lane-status.sh" "${FIRST_LANE}-${LAST_LANE}" --user "$ME" > "$WORK_DIR/lanes.json" &
-PID_LANES=$!
+"$SCRIPT_DIR/lane-status.sh" "${FIRST_LANE}-${LAST_LANE}" --user "$ME" > "$WORK_DIR/lanes_vm.json" &
+PID_LANES_VM=$!
+
+"$SCRIPT_DIR/lane-status.sh" "zero" --user "$ME" > "$WORK_DIR/lanes_zero.json" &
+PID_LANES_ZERO=$!
 
 # Merged PRs across all lanes (per-lane files to avoid interleaved writes)
 MERGED_PIDS=()
@@ -48,10 +51,18 @@ for i in $(seq 1 "$MAX_WORKERS"); do
   MERGED_PIDS+=($!)
 done
 
+# Merged PRs for the "zero" lane
+gh pr list --repo "$REPO" --label "zero" --state merged \
+  --json number,title,mergedAt,labels --limit 20 \
+  --jq '.[] | {number, title, mergedAt, lane: "zero"}' \
+  > "$WORK_DIR/merged_zero.jsonl" 2>"$WORK_DIR/merged_zero.err" &
+MERGED_PIDS+=($!)
+
 # Wait for critical jobs and check exit status
 ERRORS=()
 wait "$PID_PIPELINE" || ERRORS+=("pipeline-status.sh failed")
-wait "$PID_LANES" || ERRORS+=("lane-status.sh failed")
+wait "$PID_LANES_VM" || ERRORS+=("lane-status.sh failed")
+wait "$PID_LANES_ZERO" || ERRORS+=("lane-status.sh zero failed")
 for pid in "${MERGED_PIDS[@]}"; do
   wait "$pid" || ERRORS+=("merged PR fetch (pid $pid) failed")
 done
@@ -68,13 +79,20 @@ if [[ ! -s "$WORK_DIR/pipeline.json" ]] || ! jq empty "$WORK_DIR/pipeline.json" 
   echo "Error: failed to fetch pipeline data" >&2
   exit 1
 fi
-if [[ ! -s "$WORK_DIR/lanes.json" ]] || ! jq empty "$WORK_DIR/lanes.json" 2>/dev/null; then
+if [[ ! -s "$WORK_DIR/lanes_vm.json" ]] || ! jq empty "$WORK_DIR/lanes_vm.json" 2>/dev/null; then
   echo "Error: failed to fetch lane data" >&2
   exit 1
 fi
 
-# Combine per-lane merged PR files
-cat "$WORK_DIR"/merged_vm*.jsonl > "$WORK_DIR/merged_raw.jsonl" 2>/dev/null || true
+# Merge vm lanes + zero lane into a single lanes.json
+if [[ -s "$WORK_DIR/lanes_zero.json" ]] && jq empty "$WORK_DIR/lanes_zero.json" 2>/dev/null; then
+  jq -s '.[0] + .[1]' "$WORK_DIR/lanes_vm.json" "$WORK_DIR/lanes_zero.json" > "$WORK_DIR/lanes.json"
+else
+  cp "$WORK_DIR/lanes_vm.json" "$WORK_DIR/lanes.json"
+fi
+
+# Combine per-lane merged PR files (including zero)
+cat "$WORK_DIR"/merged_vm*.jsonl "$WORK_DIR/merged_zero.jsonl" > "$WORK_DIR/merged_raw.jsonl" 2>/dev/null || true
 
 # --- Render: CI Pipeline ---
 
