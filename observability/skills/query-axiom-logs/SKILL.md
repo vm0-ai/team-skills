@@ -19,15 +19,27 @@ Query logs and telemetry data from Axiom using the guidelines and examples below
 
 ## Environment Setup
 
-### AXIOM_TOKEN Location
+There are **two separate tokens** for dev and prod environments:
 
-The token is stored in `turbo/apps/web/.env.local`:
+### Production Token
+
+The production token is available as the `AXIOM_TOKEN` shell environment variable (set by the VM environment, not in any dotfile).
 
 ```bash
-AXIOM_TOKEN=xaat-xxxxx
+# Verify it exists
+echo "$AXIOM_TOKEN" | head -c 10
 ```
 
-### If Token is Missing
+### Dev Token
+
+Dev tokens are stored in `turbo/apps/web/.env.local`:
+
+```bash
+AXIOM_TOKEN_SESSIONS=xaat-xxxxx
+AXIOM_TOKEN_TELEMETRY=xaat-xxxxx
+```
+
+### If Tokens are Missing
 
 Ask the user to sync environment variables from 1Password:
 
@@ -35,24 +47,28 @@ Ask the user to sync environment variables from 1Password:
 ./scripts/sync-env.sh
 ```
 
-This syncs `AXIOM_TOKEN` from `op://Development/vm0-env-local/axiom_token`.
-
 ## Available Datasets
 
-| Dataset | Dev Name | Purpose |
-|---------|----------|---------|
-| Web Logs | `vm0-web-logs-dev` | Server logs (errors, warnings, API calls) |
-| Agent Run Events | `vm0-agent-run-events-dev` | Agent execution events and activity |
-| Sandbox System | `vm0-sandbox-telemetry-system-dev` | Sandbox console/system logs |
-| Sandbox Metrics | `vm0-sandbox-telemetry-metrics-dev` | CPU, memory, disk usage |
-| Sandbox Network | `vm0-sandbox-telemetry-network-dev` | HTTP requests from sandbox |
-
-For production, replace `-dev` with `-prod`.
+| Dataset | Dev Name | Prod Name | Purpose |
+|---------|----------|-----------|---------|
+| Web Logs | `vm0-web-logs-dev` | `vm0-web-logs-prod` | Server logs (errors, warnings, API calls) |
+| Agent Run Events | `vm0-agent-run-events-dev` | `vm0-agent-run-events-prod` | Agent execution events and activity |
+| Sandbox System | `vm0-sandbox-telemetry-system-dev` | `vm0-sandbox-telemetry-system-prod` | Sandbox console/system logs |
+| Sandbox Metrics | `vm0-sandbox-telemetry-metrics-dev` | `vm0-sandbox-telemetry-metrics-prod` | CPU, memory, disk usage |
+| Sandbox Network | `vm0-sandbox-telemetry-network-dev` | `vm0-sandbox-telemetry-network-prod` | HTTP requests from sandbox |
 
 ## Query Command
 
+**For production datasets (`-prod`):** use `$AXIOM_TOKEN` directly from the shell environment:
+
 ```bash
-source turbo/apps/web/.env.local && axiom query "APL_QUERY" -T "$AXIOM_TOKEN" -f table
+axiom query "APL_QUERY" -T "$AXIOM_TOKEN" -f table
+```
+
+**For dev datasets (`-dev`):** source the dev token first:
+
+```bash
+source turbo/apps/web/.env.local && axiom query "APL_QUERY" -T "$AXIOM_TOKEN_SESSIONS" -f table
 ```
 
 Options:
@@ -83,46 +99,56 @@ Options:
 
 ## Common Queries
 
-### Web Logs - Find Errors
+### Production Examples
+
+#### Web Logs - Find Errors (prod)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-web-logs-dev'] | where _time > now(-1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN"
+axiom query "['vm0-web-logs-prod'] | where _time > now(-1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN"
 ```
 
-### Web Logs - Search Text
+#### Web Logs - Search Text (prod)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-web-logs-dev'] | search 'connection refused' | project _time, message | limit 20" -T "$AXIOM_TOKEN" --start-time "-24h"
+axiom query "['vm0-web-logs-prod'] | search 'connection refused' | project _time, message | limit 20" -T "$AXIOM_TOKEN" --start-time "-24h"
 ```
 
-### Agent Events - By Run ID
+#### Agent Events - Failed Runs (prod)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-agent-run-events-dev'] | where runId == 'UUID_HERE' | sort by sequenceNumber asc" -T "$AXIOM_TOKEN"
+axiom query "['vm0-agent-run-events-prod'] | where _time > now(-1h) | where eventType == 'system' | where eventData.subtype == 'error' | project _time, runId, eventData.message | limit 20" -T "$AXIOM_TOKEN"
 ```
 
-### Agent Events - Failed Runs
+### Dev Examples
+
+#### Web Logs - Find Errors (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-agent-run-events-dev'] | where _time > now(-1h) | where eventType == 'system' | where eventData.subtype == 'error' | project _time, runId, eventData.message | limit 20" -T "$AXIOM_TOKEN"
+source turbo/apps/web/.env.local && axiom query "['vm0-web-logs-dev'] | where _time > now(-1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN_SESSIONS"
 ```
 
-### Sandbox Logs - By Run ID
+#### Agent Events - By Run ID (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-system-dev'] | where runId == 'UUID_HERE' | sort by _time asc" -T "$AXIOM_TOKEN"
+source turbo/apps/web/.env.local && axiom query "['vm0-agent-run-events-dev'] | where runId == 'UUID_HERE' | sort by sequenceNumber asc" -T "$AXIOM_TOKEN_SESSIONS"
 ```
 
-### Sandbox Metrics - Resource Usage
+#### Sandbox Logs - By Run ID (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-metrics-dev'] | where runId == 'UUID_HERE' | project _time, cpu, mem_used, disk_used | sort by _time asc" -T "$AXIOM_TOKEN"
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-system-dev'] | where runId == 'UUID_HERE' | sort by _time asc" -T "$AXIOM_TOKEN_TELEMETRY"
 ```
 
-### Sandbox Network - HTTP Errors
+#### Sandbox Metrics - Resource Usage (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-network-dev'] | where _time > now(-1h) | where status >= 400 | project _time, method, url, status, latency_ms | limit 50" -T "$AXIOM_TOKEN"
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-metrics-dev'] | where runId == 'UUID_HERE' | project _time, cpu, mem_used, disk_used | sort by _time asc" -T "$AXIOM_TOKEN_TELEMETRY"
+```
+
+#### Sandbox Network - HTTP Errors (dev)
+
+```bash
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-network-dev'] | where _time > now(-1h) | where status >= 400 | project _time, method, url, status, latency_ms | limit 50" -T "$AXIOM_TOKEN_TELEMETRY"
 ```
 
 ## Dataset Fields Reference
