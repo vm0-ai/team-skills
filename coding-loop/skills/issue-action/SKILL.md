@@ -1,7 +1,6 @@
 ---
 name: issue-action
 description: Implement issue, review PR, and verify CI — runs issue-implement, pr-review-loop, and pr-check-loop sequentially
-context: fork
 ---
 
 # Issue Action
