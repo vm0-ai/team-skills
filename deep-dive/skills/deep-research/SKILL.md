@@ -1,7 +1,6 @@
 ---
 name: deep-research
 description: Deep research and information gathering before any implementation discussion
-context: fork
 ---
 
 # DEEP RESEARCH MODE

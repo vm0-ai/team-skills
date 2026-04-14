@@ -1,7 +1,6 @@
 ---
 name: deep-plan
 description: Create concrete implementation plan based on research and innovation findings
-context: fork
 ---
 
 # DEEP PLAN MODE

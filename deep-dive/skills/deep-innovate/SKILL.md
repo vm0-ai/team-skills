@@ -1,7 +1,6 @@
 ---
 name: deep-innovate
 description: Deep brainstorming and solution exploration based on research findings
-context: fork
 ---
 
 # DEEP INNOVATE MODE
