@@ -123,20 +123,34 @@ If `EXISTING_WORKER` is set, skip Steps 4-5 and go directly to Step 6 (report).
 
 Only runs if PR has no existing worker label.
 
+Query the `vm` lanes and the `zero` lane in parallel, then merge results:
+
 ```bash
 ME=$(gh api user --jq '.login')
 MAX_WORKERS=<from args or 4>
 
 FIRST_LANE=$(printf "vm%02d" 1)
 LAST_LANE=$(printf "vm%02d" $MAX_WORKERS)
-LANES=$(${CLAUDE_PLUGIN_ROOT}/scripts/lane-status.sh "${FIRST_LANE}-${LAST_LANE}" --user "$ME")
+VM_LANES=$(${CLAUDE_PLUGIN_ROOT}/scripts/lane-status.sh "${FIRST_LANE}-${LAST_LANE}" --user "$ME") &
+PID_VM=$!
+ZERO_LANE=$(${CLAUDE_PLUGIN_ROOT}/scripts/lane-status.sh "zero" --user "$ME") &
+PID_ZERO=$!
+wait $PID_VM $PID_ZERO
 
-echo "$LANES" | jq '.[] | {lane, issue_count, pr_count, total}'
+# Merge into a single array: vm lanes first, zero lane appended
+ALL_LANES=$(jq -s '.[0] + .[1]' <(echo "$VM_LANES") <(echo "$ZERO_LANE"))
+
+echo "$ALL_LANES" | jq '.[] | {lane, issue_count, pr_count, total}'
 ```
 
 ### Step 5: Apply Worker Label
 
-Pick the worker label with the lowest total (issues + PRs). Prefer workers with **zero** total items. Break ties by lowest number.
+Pick the worker label with the lowest total (issues + PRs). **When totals are equal, prefer `zero` over any `vm` worker.** Break remaining ties by lowest `vm` number.
+
+Selection logic:
+1. Find the minimum total across all lanes (vm01..vmN + zero)
+2. Among all lanes with that minimum total, if `zero` is one of them → select `zero`
+3. Otherwise select the `vm` lane with the lowest number
 
 ```bash
 gh label create "$SELECTED_LABEL" --description "Coding worker $SELECTED_LABEL" --color 0E8A16 2>/dev/null || true
@@ -160,11 +174,14 @@ Assigned to worker: <LABEL> <(existing) if kept>
 Pending label: <removed / not present>
 
 Worker load (issues + PRs):
+  zero: 0 (issues: 0, PRs: 0)  <-- assigned here
   vm01: 3 (issues: 2, PRs: 1)
-  vm02: 0 (issues: 0, PRs: 0)  <-- assigned here
+  vm02: 0 (issues: 0, PRs: 0)
   vm03: 3 (issues: 1, PRs: 2)
   vm04: 4 (issues: 3, PRs: 1)
 ```
+
+Show `zero` first in the display, followed by `vm01`..`vmN` in order.
 
 ---
 
@@ -176,7 +193,9 @@ Worker load (issues + PRs):
 - **Preserve existing worker label** — if the PR already has a worker label, keep it (same agent should continue)
 - **Only assign new worker if none exists** — load balance only for fresh assignments
 - **Always pick the least-loaded worker** — balance is the primary goal
-- **Break ties by lowest number** — prefer `vm01` over `vm02` when equal
+- **Include `zero` in load balancing** — query `zero` lane alongside `vm01`..`vmN` and consider it as a candidate
+- **Prefer `zero` on ties** — when `zero` and any `vm` worker share the same minimum total, always assign to `zero`
+- **Break remaining ties by lowest number** — prefer `vm01` over `vm02` when equal
 - **Create labels on demand** — if `vm0N` label doesn't exist, create it
 - **One worker label per PR** — do not add multiple worker labels
 - **`^label` is additive** — it does not replace default labels, it adds to them
