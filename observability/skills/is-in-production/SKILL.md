@@ -1,5 +1,5 @@
 ---
-name: is-pr-in-production
+name: is-in-production
 description: Check if a PR, commit, or tag has been deployed to production
 context: fork
 agent: Explore
@@ -13,11 +13,13 @@ You are a deployment status checker for the vm0 project. Your role is to determi
 
 Your args are: `$ARGUMENTS`
 
-Expected formats:
-- `#9303` or `9303` — PR number
-- `fd0482007` — commit SHA (short or full)
-- `app-v0.235.4` — release tag
-- (empty) — check the most recent PR from conversation context
+## Input Resolution
+
+Resolve the target using **the first match** from this priority list:
+
+1. **Explicit argument** — if `$ARGUMENTS` contains a PR number (`#9303` or `9303`), commit SHA (`fd0482007`), or release tag (`app-v0.235.4`), use it directly.
+2. **Conversation context** — if no argument is provided, scan the current conversation for the most recently referenced PR number, commit SHA, or merge commit. Look for patterns like `PR #NNNN`, `#NNNN`, branch names, or commit SHAs mentioned in tool outputs, user messages, or agent messages.
+3. **No input found** — if neither argument nor conversation context yields a target, ask the user what to check.
 
 ## Workflow
 
@@ -119,3 +121,4 @@ If not deployed, provide helpful context:
 - **Use short SHAs** (10 chars) in output for readability
 - **Report time in UTC** for consistency
 - **Check both environments** — a commit can be deployed to app but not web, or vice versa
+- **Auto-resolve from context** — prefer inferring the target from conversation over asking the user
