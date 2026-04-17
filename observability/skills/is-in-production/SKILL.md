@@ -1,8 +1,6 @@
 ---
 name: is-in-production
 description: Check if a PR, commit, or tag has been deployed to production
-context: fork
-agent: Explore
 ---
 
 # Is Deployed
