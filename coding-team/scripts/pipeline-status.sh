@@ -14,12 +14,17 @@ source "$SCRIPT_DIR/_common.sh"
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
-# Run 3 queries in parallel
+# Run 4 queries in parallel
 
 # 1. CI pipeline (last 10 runs on main)
-gh run list --repo "$REPO" --workflow turbo.yml --branch main --limit 10 \
+gh run list --repo "$REPO" --workflow turbo.yml --branch main --limit 30 \
   --json databaseId,conclusion,url,createdAt \
   > "$WORK_DIR/ci_runs.json" &
+
+# 4. Merge-group turbo runs (last 30)
+gh run list --repo "$REPO" --workflow turbo.yml --event merge_group --limit 30 \
+  --json databaseId,conclusion,url,createdAt \
+  > "$WORK_DIR/merge_group_runs.json" &
 
 # 2. Merge queue
 gh api graphql -f query='
@@ -55,6 +60,7 @@ wait
 
 # Process CI runs
 CI_RUNS=$(jq '[.[] | {id: .databaseId, conclusion, url, created_at: .createdAt}]' "$WORK_DIR/ci_runs.json")
+MERGE_GROUP_RUNS=$(jq '[.[] | {id: .databaseId, conclusion, url, created_at: .createdAt}]' "$WORK_DIR/merge_group_runs.json")
 
 # Process merge queue
 MERGE_QUEUE=$(jq '
@@ -102,6 +108,7 @@ fi
 
 jq -n \
   --argjson ci_runs "$CI_RUNS" \
+  --argjson merge_group_runs "$MERGE_GROUP_RUNS" \
   --argjson merge_queue "$MERGE_QUEUE" \
   --argjson release "$RELEASE" \
-  '{ci_runs: $ci_runs, merge_queue: $merge_queue, release: $release}'
+  '{ci_runs: $ci_runs, merge_group_runs: $merge_group_runs, merge_queue: $merge_queue, release: $release}'

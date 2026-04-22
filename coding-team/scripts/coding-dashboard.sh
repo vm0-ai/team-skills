@@ -45,18 +45,52 @@ MERGED_PIDS=()
 for i in $(seq 1 "$MAX_WORKERS"); do
   LANE=$(printf "vm%02d" "$i")
   gh pr list --repo "$REPO" --label "$LANE" --state merged \
-    --json number,title,mergedAt,labels --limit 20 \
-    --jq ".[] | {number, title, mergedAt, lane: \"$LANE\"}" \
+    --json number,title,mergedAt,labels,author,assignees --limit 20 \
+    --jq ".[] | select(.author.login == \"$ME\" or (.assignees | map(.login) | any(. == \"$ME\"))) | {number, title, mergedAt, lane: \"$LANE\"}" \
     > "$WORK_DIR/merged_${LANE}.jsonl" 2>"$WORK_DIR/merged_${LANE}.err" &
   MERGED_PIDS+=($!)
 done
 
 # Merged PRs for the "zero" lane
 gh pr list --repo "$REPO" --label "zero" --state merged \
-  --json number,title,mergedAt,labels --limit 20 \
-  --jq '.[] | {number, title, mergedAt, lane: "zero"}' \
+  --json number,title,mergedAt,labels,author,assignees --limit 20 \
+  --jq ".[] | select(.author.login == \"$ME\" or (.assignees | map(.login) | any(. == \"$ME\"))) | {number, title, mergedAt, lane: \"zero\"}" \
   > "$WORK_DIR/merged_zero.jsonl" 2>"$WORK_DIR/merged_zero.err" &
 MERGED_PIDS+=($!)
+
+# Merged PRs with no lane label (unlaned)
+gh pr list --repo "$REPO" --author "$ME" --state merged \
+  --json number,title,mergedAt,labels --limit 30 \
+  --jq '.[] | select([.labels[].name] | map(test("^(vm[0-9]+|zero)$")) | any | not) | {number, title, mergedAt, lane: "unlaned"}' \
+  > "$WORK_DIR/merged_unlaned_author.jsonl" 2>/dev/null &
+MERGED_PIDS+=($!)
+
+gh pr list --repo "$REPO" --assignee "$ME" --state merged \
+  --json number,title,mergedAt,labels --limit 30 \
+  --jq '.[] | select([.labels[].name] | map(test("^(vm[0-9]+|zero)$")) | any | not) | {number, title, mergedAt, lane: "unlaned"}' \
+  > "$WORK_DIR/merged_unlaned_assignee.jsonl" 2>/dev/null &
+MERGED_PIDS+=($!)
+
+# Open issues/PRs not filtered by lane (for unlaned section)
+gh issue list --repo "$REPO" --assignee "$ME" --state open \
+  --json number,title,labels,closedByPullRequestsReferences --limit 50 \
+  > "$WORK_DIR/unlaned_issues_assignee.json" 2>/dev/null &
+PID_UNLANED_IA=$!
+
+gh issue list --repo "$REPO" --author "$ME" --state open \
+  --json number,title,labels,closedByPullRequestsReferences,assignees --limit 50 \
+  > "$WORK_DIR/unlaned_issues_author.json" 2>/dev/null &
+PID_UNLANED_IU=$!
+
+gh pr list --repo "$REPO" --author "$ME" --state open \
+  --json number,title,labels,mergeable,headRefOid,headRefName --limit 50 \
+  > "$WORK_DIR/unlaned_prs_author.json" 2>/dev/null &
+PID_UNLANED_PA=$!
+
+gh pr list --repo "$REPO" --assignee "$ME" --state open \
+  --json number,title,labels,mergeable,headRefOid,headRefName --limit 50 \
+  > "$WORK_DIR/unlaned_prs_assignee.json" 2>/dev/null &
+PID_UNLANED_PS=$!
 
 # Wait for critical jobs and check exit status
 ERRORS=()
@@ -66,6 +100,10 @@ wait "$PID_LANES_ZERO" || ERRORS+=("lane-status.sh zero failed")
 for pid in "${MERGED_PIDS[@]}"; do
   wait "$pid" || ERRORS+=("merged PR fetch (pid $pid) failed")
 done
+wait "$PID_UNLANED_IA" || ERRORS+=("unlaned issues (assignee) fetch failed")
+wait "$PID_UNLANED_IU" || ERRORS+=("unlaned issues (author) fetch failed")
+wait "$PID_UNLANED_PA" || ERRORS+=("unlaned PRs (author) fetch failed")
+wait "$PID_UNLANED_PS" || ERRORS+=("unlaned PRs (assignee) fetch failed")
 
 if [[ ${#ERRORS[@]} -gt 0 ]]; then
   echo "Warning: some background jobs failed:" >&2
@@ -91,32 +129,75 @@ else
   cp "$WORK_DIR/lanes_vm.json" "$WORK_DIR/lanes.json"
 fi
 
+# Build unlaned lane object: open issues/PRs for $ME with no lane label
+UNLANED_LANE=$(jq -rs --argjson max "$MAX_WORKERS" '
+  (["zero"] + [range(1; $max+1) | . as $i | "vm" + (if $i < 10 then "0" else "" end) + ($i | tostring)]) as $lane_labels |
+  ([.[0][], (.[1][] | select(.assignees | length == 0))] | group_by(.number) | map(.[0])
+   | map(select([.labels[].name] | any(. as $l | $lane_labels | any(. == $l)) | not))
+   | map({
+       number, title,
+       pending: ([.labels[].name] | any(. == "pending")),
+       linked_prs: [.closedByPullRequestsReferences[].number]
+     }) | sort_by(.number)) as $issues |
+  ([.[2][], .[3][]] | group_by(.number) | map(.[0])
+   | map(select([.labels[].name] | any(. as $l | $lane_labels | any(. == $l)) | not))
+   | map({
+       number, title,
+       pending: ([.labels[].name] | any(. == "pending")),
+       mergeable, head: (.headRefOid[:7]), branch: .headRefName
+     }) | sort_by(.number)) as $prs |
+  {
+    lane: "unlaned",
+    issues: $issues, prs: $prs,
+    issue_count: ($issues | length), pr_count: ($prs | length),
+    total: (($issues | length) + ($prs | length))
+  }
+' "$WORK_DIR/unlaned_issues_assignee.json" \
+  "$WORK_DIR/unlaned_issues_author.json" \
+  "$WORK_DIR/unlaned_prs_author.json" \
+  "$WORK_DIR/unlaned_prs_assignee.json")
+
+if [[ "$(echo "$UNLANED_LANE" | jq '.total')" -gt 0 ]]; then
+  jq --argjson u "$UNLANED_LANE" '. + [$u]' "$WORK_DIR/lanes.json" > "$WORK_DIR/lanes_tmp.json"
+  mv "$WORK_DIR/lanes_tmp.json" "$WORK_DIR/lanes.json"
+fi
+
 # Combine per-lane merged PR files (including zero)
-cat "$WORK_DIR"/merged_vm*.jsonl "$WORK_DIR/merged_zero.jsonl" > "$WORK_DIR/merged_raw.jsonl" 2>/dev/null || true
+cat "$WORK_DIR"/merged_vm*.jsonl "$WORK_DIR/merged_zero.jsonl" \
+  "$WORK_DIR/merged_unlaned_author.jsonl" "$WORK_DIR/merged_unlaned_assignee.jsonl" \
+  > "$WORK_DIR/merged_raw.jsonl" 2>/dev/null || true
 
-# --- Render: CI Pipeline ---
+# --- Render ---
 
-echo "---"
-echo "📊 CI Pipeline (last 10 runs on main)"
+OUTPUT_FILE="$WORK_DIR/output.txt"
+exec 3>&1
+exec > "$OUTPUT_FILE"
+
+echo "📊 CI Pipeline - Turbo"
 
 CI_LINE=$(jq -r '
   [.ci_runs[] | if .conclusion == "success" then "✅" elif .conclusion == "failure" then "🔴" else "⏳" end]
   | join("")
 ' "$WORK_DIR/pipeline.json")
-echo "$CI_LINE"
+MG_LINE=$(jq -r '
+  [.merge_group_runs[] | if .conclusion == "success" then "✅" elif .conclusion == "failure" then "🔴" else "⏳" end]
+  | join("")
+' "$WORK_DIR/pipeline.json")
+echo "  main         $CI_LINE"
+echo "  merge_group  $MG_LINE"
 
-# Find most recent failure
+# Find most recent failure on main
 FAILURE_INFO=$(jq -r '
   .ci_runs | to_entries
   | map(select(.value.conclusion == "failure"))
   | if length == 0 then "none"
-    else .[0] | "\(.key + 1)|\(.value.url)|\(.value.createdAt)"
+    else .[0] | "\(.key + 1)|\(.value.url)|\(.value.created_at)"
     end
 ' "$WORK_DIR/pipeline.json")
 
 if [[ "$FAILURE_INFO" == "none" ]]; then
   echo ""
-  echo "No failures"
+  echo "  main: no failures"
 else
   IFS='|' read -r FAIL_POS FAIL_URL FAIL_TIME <<< "$FAILURE_INFO"
   SUCCESS_SINCE=$((FAIL_POS - 1))
@@ -140,15 +221,13 @@ else
   fi
 
   echo ""
-  echo "Last failure: #${FAIL_POS}/10"
-  echo "  Run: ${FAIL_URL}"
+  echo "  main: last failure #${FAIL_POS}/30 (${ELAPSED_STR} ago, ${SUCCESS_SINCE} successes since)"
+  echo "    Run: ${FAIL_URL}"
 
   # Get failed job names
   RUN_ID=$(echo "$FAIL_URL" | grep -oE '[0-9]+$')
   FAILED_JOBS=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '[.jobs[] | select(.conclusion == "failure") | .name] | join(", ")' 2>/dev/null || echo "unknown")
-  echo "  Failed jobs: ${FAILED_JOBS}"
-  echo "  Success since: ${SUCCESS_SINCE}"
-  echo "  Elapsed: ${ELAPSED_STR}"
+  echo "    Failed jobs: ${FAILED_JOBS}"
 fi
 
 # --- Render: Merge Queue ---
@@ -235,11 +314,10 @@ jq -r --argjson mq "$MQ_NUMBERS" --arg green "$GREEN" --arg yellow "$YELLOW" --a
 # --- Render: Recently Merged PRs ---
 
 echo ""
-echo "---"
 echo "📝 Recently Merged (top 20)"
 
 if [[ -s "$WORK_DIR/merged_raw.jsonl" ]]; then
-  jq -rs 'sort_by(.mergedAt) | reverse | .[0:20][] |
+  jq -rs 'unique_by(.number) | sort_by(.mergedAt) | reverse | .[0:20][] |
     (.mergedAt | split("T") | .[0] | split("-") | .[1] + "/" + .[2]) as $date |
     (.mergedAt | split("T") | .[1] | split(":") | .[0] + ":" + .[1]) as $time |
     "- \($date) \($time) #\(.number) \(.lane) — \(.title)"
@@ -248,4 +326,7 @@ else
   echo "  (none)"
 fi
 
-echo "---"
+exec >&3
+exec 3>&-
+clear
+cat "$OUTPUT_FILE"
