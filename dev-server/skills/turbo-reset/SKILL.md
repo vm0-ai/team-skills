@@ -12,12 +12,12 @@ Reset the turbo development environment to a clean state.
 
 1. Remove `node_modules` across the monorepo:
    ```bash
-   cd turbo && rm -rf node_modules apps/*/node_modules packages/*/node_modules
+   bash -c 'cd turbo && rm -rf node_modules apps/*/node_modules packages/*/node_modules'
    ```
 
 2. Clear turbo cache and Next.js generated files:
    ```bash
-   cd turbo && rm -rf .turbo apps/*/.turbo packages/*/.turbo apps/*/.next
+   bash -c 'cd turbo && rm -rf .turbo apps/*/.turbo packages/*/.turbo apps/*/.next'
    ```
 
 3. Reinstall dependencies:
