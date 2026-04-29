@@ -15,9 +15,9 @@ Reset the turbo development environment to a clean state.
    cd turbo && rm -rf node_modules apps/*/node_modules packages/*/node_modules
    ```
 
-2. Clear turbo cache:
+2. Clear turbo cache and Next.js generated files:
    ```bash
-   cd turbo && rm -rf .turbo apps/*/.turbo packages/*/.turbo
+   cd turbo && rm -rf .turbo apps/*/.turbo packages/*/.turbo apps/*/.next
    ```
 
 3. Reinstall dependencies:
