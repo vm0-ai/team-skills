@@ -21,36 +21,32 @@ Use the `/dev-start` skill to start the dev server if not already running. Wait 
 
 ### Step 2: Authenticate Browser
 
-Use the e2e auth automation script to log in to the platform app.
+Authenticate directly through the Clerk UI.
 
 Build the test email from `git config user.email` prefix + hostname:
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 TEST_EMAIL="$("$PROJECT_ROOT/scripts/cn.sh" -u)+clerk_test@vm0.ai"
-
-cd "$PROJECT_ROOT" && E2E_ACCOUNT="$TEST_EMAIL" VM0_API_URL="https://www.vm7.ai:8443" \
-  ./e2e/test/libs/bats/bin/bats ./e2e/tests/02-browser/brw-t01-auth.bats
+VM0_API_URL="https://www.vm7.ai:8443"
 ```
 
-This will:
-
-- Navigate to the Clerk sign-in page on www.vm7.ai
-- Authenticate using the test email and OTP code `424242`
-- Skip login if the browser is already authenticated
-- Leave the browser open for agent-browser to use
-
-### Step 3: Start Video Recording
-
-Before performing any browser actions, start recording the session. Use the task name (a short English description of what you're doing) and a timestamp for the filename:
+Use the Clerk sign-up path for a fresh `+clerk_test` account:
 
 ```bash
-TASK_NAME="connect-atlassian"  # example - derive from the user's request
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
-mkdir -p "$PROJECT_ROOT/tmp"
-agent-browser record restart "$PROJECT_ROOT/tmp/${TASK_NAME}-${TIMESTAMP}.webm"
+SIGNUP_PASSWORD="$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 16)!Aa1"
+agent-browser open "$VM0_API_URL/sign-up" --ignore-https-errors
+agent-browser snapshot -i
+agent-browser find label "Email address" fill "$TEST_EMAIL"
+agent-browser find label "Password" fill "$SIGNUP_PASSWORD"
+agent-browser find text "Continue" click
 ```
+
+If Clerk asks for email verification, enter OTP `424242`.
+
+If the account already exists, use the Clerk sign-in path with the same email. After entering the email, prefer the email-code method if Clerk shows a password screen: click "Use another method", choose "Email code", and enter OTP `424242`.
+
+After auth completes, navigate to `https://app.vm7.ai:8443` and verify the signed-in user in the snapshot. If the browser is signed into the wrong account, close the browser session and repeat the Clerk UI auth path.
 
 ## URL Rules
 
@@ -94,7 +90,7 @@ agent-browser snapshot -i
 
 ### Screenshots
 
-Save all screenshots to the git root's `tmp/` directory. Use the task name + timestamp naming convention:
+Capture screenshots for key operation steps only. Save screenshots to the git root's `tmp/` directory. Use the task name + timestamp naming convention:
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
@@ -114,24 +110,13 @@ agent-browser screenshot "$PROJECT_ROOT/tmp/${TASK_NAME}-${TIMESTAMP}-03-form.pn
 - Step number: two-digit sequential number (`01`, `02`, `03`, ...)
 - Description: brief English description of what the screenshot shows
 
-### Video Recording
-
-One video per task. Stop recording when the task is complete:
-
-```bash
-agent-browser record stop
-```
-
-The video file follows the same naming pattern: `<task-name>-<YYYYMMDD-HHMMSS>.webm`
-
 ## Output
 
 After completing the browser task:
 
-1. Stop the video recording
-2. List all captured screenshots and the video file
-3. Show the key screenshots inline for the user to review
-4. Summarize what was done
+1. List all captured screenshots
+2. Show the key screenshots inline for the user to review
+3. Summarize what was done
 
 ```
 Task complete!
@@ -141,9 +126,6 @@ Screenshots:
 - tmp/connect-atlassian-20260311-081900-02-settings.png
 - tmp/connect-atlassian-20260311-081900-03-form-filled.png
 - tmp/connect-atlassian-20260311-081900-04-success.png
-
-Video:
-- tmp/connect-atlassian-20260311-081900.webm
 ```
 
 ## Important Notes
