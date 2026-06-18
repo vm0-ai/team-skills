@@ -15,11 +15,43 @@ Parse the args to understand what the user wants to do in the browser (e.g., "co
 
 Before any browser interaction, ensure the dev server is running. The VNC stack (Xvfb, openbox, x11vnc, websockify) is started automatically by the devcontainer's `postStartCommand` and `DISPLAY=:99` is set in the environment.
 
-### Step 1: Start Dev Server
+### Step 1: Ensure Local Hosts Mapping
+
+Before opening browser pages, verify every local `vm7.ai` development domain resolves to `127.0.0.1`. This is required even when `pnpm dev:status` reports running: if `api.vm7.ai` resolves elsewhere, `https://app.vm7.ai:8443` can render but platform API calls and onboarding/chat bootstrap can hang.
+
+Use `sudo tee` to update `/etc/hosts`; do not use `sed -i` because `/etc/hosts` is often a mounted file in devcontainers and atomic rename can fail with `Device or resource busy`.
+
+```bash
+VM7_DOMAINS="vm7.ai www.vm7.ai app.vm7.ai api.vm7.ai docs.vm7.ai platform.vm7.ai"
+
+needs_hosts_update=0
+for domain in $VM7_DOMAINS; do
+  if ! getent hosts "$domain" | awk '{print $1}' | grep -qx "127.0.0.1"; then
+    needs_hosts_update=1
+  fi
+done
+
+if [ "$needs_hosts_update" -eq 1 ]; then
+  tmp_hosts=$(mktemp)
+  awk '
+    /(^|[[:space:]])(vm7|www[.]vm7|app[.]vm7|api[.]vm7|docs[.]vm7|platform[.]vm7)[.]ai([[:space:]]|$)/ { next }
+    { print }
+  ' /etc/hosts > "$tmp_hosts"
+  printf "127.0.0.1 %s\n" "$VM7_DOMAINS" >> "$tmp_hosts"
+  sudo tee /etc/hosts < "$tmp_hosts" >/dev/null
+  rm -f "$tmp_hosts"
+fi
+
+getent hosts api.vm7.ai www.vm7.ai app.vm7.ai docs.vm7.ai
+```
+
+If this command cannot update `/etc/hosts` because `sudo` is unavailable or prompts for credentials, report that blocker before browser work.
+
+### Step 2: Start Dev Server
 
 Use the `/dev-start` skill to start the dev server if not already running. Wait for it to be ready.
 
-### Step 2: Authenticate Browser
+### Step 3: Authenticate Browser
 
 Authenticate directly through the Clerk UI.
 
@@ -56,6 +88,7 @@ After auth completes, navigate to `https://app.vm7.ai:8443` and verify the signe
 | ------- | -------------------------- |
 | Web     | `https://www.vm7.ai:8443`  |
 | App     | `https://app.vm7.ai:8443`  |
+| API     | `https://api.vm7.ai:8443`  |
 | Docs    | `https://docs.vm7.ai:8443` |
 
 **DO NOT use:**

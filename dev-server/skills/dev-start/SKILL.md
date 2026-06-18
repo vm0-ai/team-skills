@@ -16,7 +16,39 @@ Supports `--tunnel-hostname=<fqdn>` to use a fixed tunnel domain instead of the 
 
 ## Workflow
 
-### Step 1: Pre-flight Check
+### Step 1: Ensure Local Hosts Mapping
+
+Ensure every local `vm7.ai` development domain resolves to `127.0.0.1` before running status checks or opening the app. The platform app calls `https://api.vm7.ai:8443`; if `api.vm7.ai` resolves outside the container while `www.vm7.ai` and `app.vm7.ai` resolve locally, the web/app services can look healthy while platform API calls hang.
+
+Use `sudo tee` to update `/etc/hosts`; do not use `sed -i` because `/etc/hosts` is often a mounted file in devcontainers and atomic rename can fail with `Device or resource busy`.
+
+```bash
+VM7_DOMAINS="vm7.ai www.vm7.ai app.vm7.ai api.vm7.ai docs.vm7.ai platform.vm7.ai"
+
+needs_hosts_update=0
+for domain in $VM7_DOMAINS; do
+  if ! getent hosts "$domain" | awk '{print $1}' | grep -qx "127.0.0.1"; then
+    needs_hosts_update=1
+  fi
+done
+
+if [ "$needs_hosts_update" -eq 1 ]; then
+  tmp_hosts=$(mktemp)
+  awk '
+    /(^|[[:space:]])(vm7|www[.]vm7|app[.]vm7|api[.]vm7|docs[.]vm7|platform[.]vm7)[.]ai([[:space:]]|$)/ { next }
+    { print }
+  ' /etc/hosts > "$tmp_hosts"
+  printf "127.0.0.1 %s\n" "$VM7_DOMAINS" >> "$tmp_hosts"
+  sudo tee /etc/hosts < "$tmp_hosts" >/dev/null
+  rm -f "$tmp_hosts"
+fi
+
+getent hosts api.vm7.ai www.vm7.ai app.vm7.ai docs.vm7.ai
+```
+
+If this command cannot update `/etc/hosts` because `sudo` is unavailable or prompts for credentials, report that blocker before starting browser work; otherwise API calls from the platform can time out silently.
+
+### Step 2: Pre-flight Check
 
 Run the dev server status check. This verifies SSL certificates (regenerating if missing) and checks port accessibility:
 
@@ -27,7 +59,7 @@ cd "$PROJECT_ROOT/turbo" && pnpm dev:status
 
 If all three services show `running`, the dev server is already up — display the output and stop. Otherwise, proceed to start the server.
 
-### Step 2: Start Runner in Background
+### Step 3: Start Runner in Background
 
 Start the runner first using Bash tool with `run_in_background: true` parameter. The runner takes several minutes to initialize, so we start it early to overlap with the prepare step.
 
@@ -40,7 +72,7 @@ This returns a task_id for monitoring.
 
 **Note on runner**: The runner takes several minutes to initialize (cross-compile, upload, build rootfs/snapshots). The app works without it — only chat/agent interaction features require the runner. You will be notified when the runner background task completes.
 
-### Step 3: Run prepare.sh
+### Step 4: Run prepare.sh
 
 While the runner is initializing in the background, run `prepare.sh` to set up the environment (sync .env.local, install dependencies, run database migrations). This may take a few minutes — wait for it to complete:
 
@@ -82,9 +114,9 @@ tail -20 /tmp/prepare-output.log
 
 #### If prepare.sh succeeds
 
-Proceed to Step 4 as normal. No Slack notification is sent.
+Proceed to Step 5 as normal. No Slack notification is sent.
 
-### Step 4: Start Dev Server in Background
+### Step 5: Start Dev Server in Background
 
 After `prepare.sh` completes successfully, start the dev server using Bash tool with `run_in_background: true` parameter.
 
@@ -111,7 +143,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "<dev-task_id>" > "$PROJECT_ROOT/turbo/.dev-task-id"
 ```
 
-### Step 5: Display Results
+### Step 6: Display Results
 
 Once the server is confirmed running, display the URLs:
 
