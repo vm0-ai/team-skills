@@ -57,7 +57,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd "$PROJECT_ROOT/turbo" && pnpm dev:status
 ```
 
-If all three services show `running`, the dev server is already up — display the output and stop. Otherwise, proceed to start the server.
+If all three services show `running`, the vm0 dev server is already up — display the output, skip the runner/prepare/vm0 dev steps, and still run the marketing startup step below so `www.vm7.ai` has a local backend. Otherwise, proceed to start the server.
 
 ### Step 3: Start Runner in Background
 
@@ -72,7 +72,43 @@ This returns a task_id for monitoring.
 
 **Note on runner**: The runner takes several minutes to initialize (cross-compile, upload, build rootfs/snapshots). The app works without it — only chat/agent interaction features require the runner. You will be notified when the runner background task completes.
 
-### Step 4: Run prepare.sh
+### Step 4: Start Marketing in Background
+
+Start the independent `vm0-marketing` project using Bash tool with `run_in_background: true` parameter. This runs independently from runner, `prepare.sh`, and `pnpm dev`, so start it early and let it overlap with the rest of the workflow.
+
+Use the sibling checkout if it exists at `../vm0-marketing`; otherwise clone `vm0-ai/vm0-marketing` into `/tmp/vm0-marketing`. Install dependencies, sync env, find the first `package.json` directory, and start its `dev` script on port `3042`:
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+SIBLING_MARKETING_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)/vm0-marketing"
+
+if [ -d "$SIBLING_MARKETING_ROOT" ]; then
+  MARKETING_ROOT="$SIBLING_MARKETING_ROOT"
+else
+  MARKETING_ROOT="/tmp/vm0-marketing"
+  if [ ! -d "$MARKETING_ROOT/.git" ]; then
+    rm -rf "$MARKETING_ROOT"
+    gh repo clone vm0-ai/vm0-marketing "$MARKETING_ROOT"
+  fi
+fi
+
+cd "$MARKETING_ROOT"
+pnpm install
+bash scripts/sync-env.sh
+
+MARKETING_PACKAGE_JSON="$(find "$MARKETING_ROOT" -name package.json -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/dist/*" -print -quit)"
+if [ -z "$MARKETING_PACKAGE_JSON" ]; then
+  echo "No package.json found in $MARKETING_ROOT"
+  exit 1
+fi
+
+MARKETING_DEV_DIR="$(dirname "$MARKETING_PACKAGE_JSON")"
+cd "$MARKETING_DEV_DIR" && PORT=3042 pnpm dev 2>&1 | tee "$MARKETING_ROOT/.dev-server.log"
+```
+
+This returns a task_id for monitoring.
+
+### Step 5: Run prepare.sh
 
 While the runner is initializing in the background, run `prepare.sh` to set up the environment (sync .env.local, install dependencies, run database migrations). This may take a few minutes — wait for it to complete:
 
@@ -114,9 +150,9 @@ tail -20 /tmp/prepare-output.log
 
 #### If prepare.sh succeeds
 
-Proceed to Step 5 as normal. No Slack notification is sent.
+Proceed to Step 6 as normal. No Slack notification is sent.
 
-### Step 5: Start Dev Server in Background
+### Step 6: Start Dev Server in Background
 
 After `prepare.sh` completes successfully, start the dev server using Bash tool with `run_in_background: true` parameter.
 
@@ -143,17 +179,19 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "<dev-task_id>" > "$PROJECT_ROOT/turbo/.dev-task-id"
 ```
 
-### Step 6: Display Results
+### Step 7: Display Results
 
 Once the server is confirmed running, display the URLs:
 
 ```
 ✅ Dev server started in background
 🔧 Runner deployment started in background (takes several minutes)
+🌐 Marketing dev server started in background
 
 - Web:      https://www.vm7.ai:8443
 - App:      https://app.vm7.ai:8443
 - Docs:     https://docs.vm7.ai:8443
+- Marketing backend: http://localhost:3042
 
 The app is usable now. Chat/agent features will become available once the runner finishes initializing.
 
@@ -165,6 +203,6 @@ Next steps:
 
 ## Notes
 
-- Use TaskOutput with the task_id from `run_in_background` to check server output
+- Use TaskOutput with the task_ids from `run_in_background` to check runner, marketing, or dev server output
 - This operation runs in main context so the background task persists throughout the conversation
 - **NEVER use `nohup` to start the server** (e.g., `nohup pnpm dev > /tmp/dev-server.log 2>&1 &`). Always use the Bash tool's `run_in_background: true` parameter instead.
