@@ -76,7 +76,7 @@ This returns a task_id for monitoring.
 
 Start the independent `vm0-marketing` project using Bash tool with `run_in_background: true` parameter. This runs independently from runner, `prepare.sh`, and `pnpm dev`, so start it early and let it overlap with the rest of the workflow.
 
-Use the sibling checkout if it exists at `../vm0-marketing`; otherwise clone `vm0-ai/vm0-marketing` into `/tmp/vm0-marketing`. Install dependencies, sync env, find the first `package.json` directory, and start its `dev` script on port `3042`:
+Use the sibling checkout if it exists at `../vm0-marketing`; otherwise clone `vm0-ai/vm0-marketing` into `/tmp/vm0-marketing`. Find the first `package.json` directory, install dependencies there, sync env from the marketing repo root, and start its `dev` script on port `3042`:
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
@@ -92,10 +92,6 @@ else
   fi
 fi
 
-cd "$MARKETING_ROOT"
-pnpm install
-bash scripts/sync-env.sh
-
 MARKETING_PACKAGE_JSON="$(find "$MARKETING_ROOT" -name package.json -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/dist/*" -print -quit)"
 if [ -z "$MARKETING_PACKAGE_JSON" ]; then
   echo "No package.json found in $MARKETING_ROOT"
@@ -103,7 +99,10 @@ if [ -z "$MARKETING_PACKAGE_JSON" ]; then
 fi
 
 MARKETING_DEV_DIR="$(dirname "$MARKETING_PACKAGE_JSON")"
-cd "$MARKETING_DEV_DIR" && PORT=3042 pnpm dev 2>&1 | tee "$MARKETING_ROOT/.dev-server.log"
+cd "$MARKETING_DEV_DIR"
+pnpm install
+bash "$MARKETING_ROOT/scripts/sync-env.sh"
+PORT=3042 pnpm dev 2>&1 | tee "$MARKETING_ROOT/.dev-server.log"
 ```
 
 This returns a task_id for monitoring.
