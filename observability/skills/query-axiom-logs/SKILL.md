@@ -1,6 +1,6 @@
 ---
 name: query-axiom-logs
-description: Query logs from Axiom for debugging (read-only, no ingestion allowed)
+description: Query bounded Axiom log ranges for debugging (read-only, no ingestion allowed)
 context: fork
 agent: Explore
 ---
@@ -9,7 +9,8 @@ agent: Explore
 
 You are a log analysis specialist for the vm0 project. Your role is to query and analyze logs from Axiom for debugging purposes.
 
-**IMPORTANT: This skill is READ-ONLY. Never ingest or write data to Axiom.**
+**IMPORTANT: This skill is READ-ONLY. Never ingest or write data to Axiom, and
+never execute a query without explicit start and end times.**
 
 ## Your Task
 
@@ -57,29 +58,41 @@ Ask the user to sync environment variables from 1Password:
 | Sandbox Metrics | `vm0-sandbox-telemetry-metrics-dev` | `vm0-sandbox-telemetry-metrics-prod` | CPU, memory, disk usage |
 | Sandbox Network | `vm0-sandbox-telemetry-network-dev` | `vm0-sandbox-telemetry-network-prod` | HTTP requests from sandbox |
 
+## Required Time Bounds
+
+Every query must use the smallest finite time range that can answer the request.
+
+- Pass both `--start-time` and `--end-time` to `axiom query`. Use `--end-time "0s"` to mean the current time.
+- Put the APL `_time` filter immediately after the dataset, before `runId`, text, level, or other filters.
+- For a recent run ID, start with one day (`--start-time "-1d" --end-time "0s"`). Widen to seven days only when the run timestamp requires it. If the run is older, use a narrow absolute start and end time around that run.
+- Never remove the time bounds because a query returns no rows. Ask for or derive a bounded interval instead.
+- `limit`, `take`, a unique `runId`, and aggregations constrain results, not the amount of retained data scanned. They do not replace time bounds.
+
 ## Query Command
 
 **For production datasets (`-prod`):** use `$AXIOM_TOKEN` directly from the shell environment:
 
 ```bash
-axiom query "APL_QUERY" -T "$AXIOM_TOKEN" -f table
+axiom query "APL_QUERY" -T "$AXIOM_TOKEN" -f table --start-time "-1h" --end-time "0s"
 ```
 
 **For dev datasets (`-dev`):** source the dev token first:
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "APL_QUERY" -T "$AXIOM_TOKEN_SESSIONS" -f table
+source turbo/apps/web/.env.local && axiom query "APL_QUERY" -T "$AXIOM_TOKEN_SESSIONS" -f table --start-time "-1h" --end-time "0s"
 ```
 
 Options:
 - `-f table` - Human-readable table (default)
 - `-f json` - JSON output for processing
-- `--start-time "-1h"` - Filter by time range
+- `--start-time "-1h"` - Required inclusive start of the query range; relative or absolute
+- `--end-time "0s"` - Required exclusive end of the query range; `0s` means now
 
 ## APL Query Syntax
 
 ```apl
 ['dataset-name']
+| where _time >= ago(1h)
 | where condition
 | project field1, field2
 | limit 100
@@ -90,12 +103,14 @@ Options:
 | Operator | Example |
 |----------|---------|
 | Filter | `where level == "error"` |
-| Search | `search "connection refused"` |
-| Time | `where _time > now(-1h)` |
+| Field text match | `where message has "connection refused"` |
+| Time | `where _time >= ago(1h)` |
 | Select | `project _time, message` |
 | Sort | `sort by _time desc` |
 | Limit | `limit 100` |
 | Count | `summarize count() by field` |
+
+Use `==` for exact values and field-scoped `has` or `contains` for text. Avoid full-field `search` in automated or repeated queries. Use it only as an interactive last resort over a short explicit time range.
 
 ## Common Queries
 
@@ -104,19 +119,19 @@ Options:
 #### Web Logs - Find Errors (prod)
 
 ```bash
-axiom query "['vm0-web-logs-prod'] | where _time > now(-1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN"
+axiom query "['vm0-web-logs-prod'] | where _time >= ago(1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN" --start-time "-1h" --end-time "0s"
 ```
 
 #### Web Logs - Search Text (prod)
 
 ```bash
-axiom query "['vm0-web-logs-prod'] | search 'connection refused' | project _time, message | limit 20" -T "$AXIOM_TOKEN" --start-time "-24h"
+axiom query "['vm0-web-logs-prod'] | where _time >= ago(24h) | where message has 'connection refused' | project _time, message | limit 20" -T "$AXIOM_TOKEN" --start-time "-24h" --end-time "0s"
 ```
 
 #### Agent Events - Failed Runs (prod)
 
 ```bash
-axiom query "['vm0-agent-run-events-prod'] | where _time > now(-1h) | where eventType == 'system' | where eventData.subtype == 'error' | project _time, runId, eventData.message | limit 20" -T "$AXIOM_TOKEN"
+axiom query "['vm0-agent-run-events-prod'] | where _time >= ago(1h) | where eventType == 'system' | where eventData.subtype == 'error' | project _time, runId, eventData.message | limit 20" -T "$AXIOM_TOKEN" --start-time "-1h" --end-time "0s"
 ```
 
 ### Dev Examples
@@ -124,31 +139,31 @@ axiom query "['vm0-agent-run-events-prod'] | where _time > now(-1h) | where even
 #### Web Logs - Find Errors (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-web-logs-dev'] | where _time > now(-1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN_SESSIONS"
+source turbo/apps/web/.env.local && axiom query "['vm0-web-logs-dev'] | where _time >= ago(1h) | where level == 'error' | project _time, message, fields.context | sort by _time desc | limit 50" -T "$AXIOM_TOKEN_SESSIONS" --start-time "-1h" --end-time "0s"
 ```
 
 #### Agent Events - By Run ID (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-agent-run-events-dev'] | where runId == 'UUID_HERE' | sort by sequenceNumber asc" -T "$AXIOM_TOKEN_SESSIONS"
+source turbo/apps/web/.env.local && axiom query "['vm0-agent-run-events-dev'] | where _time >= ago(1d) | where runId == 'UUID_HERE' | project _time, sequenceNumber, eventType, eventData | sort by sequenceNumber asc | limit 500" -T "$AXIOM_TOKEN_SESSIONS" --start-time "-1d" --end-time "0s"
 ```
 
 #### Sandbox Logs - By Run ID (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-system-dev'] | where runId == 'UUID_HERE' | sort by _time asc" -T "$AXIOM_TOKEN_TELEMETRY"
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-system-dev'] | where _time >= ago(1d) | where runId == 'UUID_HERE' | project _time, runId, log | sort by _time asc | limit 500" -T "$AXIOM_TOKEN_TELEMETRY" --start-time "-1d" --end-time "0s"
 ```
 
 #### Sandbox Metrics - Resource Usage (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-metrics-dev'] | where runId == 'UUID_HERE' | project _time, cpu, mem_used, disk_used | sort by _time asc" -T "$AXIOM_TOKEN_TELEMETRY"
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-metrics-dev'] | where _time >= ago(1d) | where runId == 'UUID_HERE' | project _time, cpu, mem_used, disk_used | sort by _time asc | limit 500" -T "$AXIOM_TOKEN_TELEMETRY" --start-time "-1d" --end-time "0s"
 ```
 
 #### Sandbox Network - HTTP Errors (dev)
 
 ```bash
-source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-network-dev'] | where _time > now(-1h) | where status >= 400 | project _time, method, url, status, latency_ms | limit 50" -T "$AXIOM_TOKEN_TELEMETRY"
+source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-network-dev'] | where _time >= ago(1h) | where status >= 400 | project _time, method, url, status, latency_ms | limit 50" -T "$AXIOM_TOKEN_TELEMETRY" --start-time "-1h" --end-time "0s"
 ```
 
 ## Dataset Fields Reference
@@ -210,5 +225,8 @@ source turbo/apps/web/.env.local && axiom query "['vm0-sandbox-telemetry-network
 ## Constraints
 
 - Maximum 65,000 rows per query
-- Always use `limit` to avoid large result sets
+- Always pass explicit `--start-time` and `--end-time` values and put the matching APL `_time` filter first
+- Always use `limit` to avoid large result sets; remember that it does not reduce the scanned time range
 - Prefer aggregations (`summarize count()`) over raw queries when possible
+- Batch multiple run IDs into one bounded query instead of issuing many point lookups
+- Project only required fields before expensive sorting, and sort only when the result needs ordering
