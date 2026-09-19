@@ -20,7 +20,7 @@ If no issue number is provided, ask the user: "Which issue would you like to exp
 ### Step 1: Fetch Issue Details
 
 ```bash
-gh issue view <issue-number> --repo vm0-ai/vm0
+gh issue view <issue-number> --repo maxandzoe/okou
 ```
 
 Read the issue title, description, and acceptance criteria carefully. Identify:
@@ -56,7 +56,7 @@ Navigate to the relevant pages described in the issue using agent-browser. For e
 
 ```bash
 # Download and inject the bundle (only needed once per browser session)
-curl -sL https://raw.githubusercontent.com/vm0-ai/freeze-dry-bundle/main/freeze-dry-bundle.js | agent-browser eval --stdin
+curl -sL https://raw.githubusercontent.com/maxandzoe/freeze-dry-bundle/main/freeze-dry-bundle.js | agent-browser eval --stdin
 ```
 
 **Capturing a snapshot:**
@@ -90,7 +90,7 @@ Capture all relevant scenarios. Typically this includes:
 
 ```bash
 cd /tmp && rm -rf ui-innovate-repo
-git clone https://github.com/vm0-ai/ui-innovate.git /tmp/ui-innovate-repo
+git clone https://github.com/maxandzoe/ui-innovate.git /tmp/ui-innovate-repo
 cd /tmp/ui-innovate-repo
 mkdir -p issues/<issue-number>/baseline
 mkdir -p issues/<issue-number>/variant-a
@@ -198,30 +198,30 @@ git push origin main
 
 Wait a moment for GitHub Pages to deploy, then comment on the issue with links to the variants.
 
-The GitHub Pages base URL is: `https://vm0-ai.github.io/ui-innovate/`
+The GitHub Pages base URL is: `https://maxandzoe.github.io/ui-innovate/`
 
 ```bash
-gh issue comment <issue-number> --repo vm0-ai/vm0 --body "$(cat <<'EOF'
+gh issue comment <issue-number> --repo maxandzoe/okou --body "$(cat <<'EOF'
 ## UI Design Exploration
 
 I've created 3 design variants for this issue. You can preview them here:
 
-**[View all variants →](https://vm0-ai.github.io/ui-innovate/issues/<issue-number>/)**
+**[View all variants →](https://maxandzoe.github.io/ui-innovate/issues/<issue-number>/)**
 
 ### Variant A — <Title>
 <One-line description of the approach>
-[Preview](https://vm0-ai.github.io/ui-innovate/issues/<issue-number>/variant-a/<file>.html)
+[Preview](https://maxandzoe.github.io/ui-innovate/issues/<issue-number>/variant-a/<file>.html)
 
 ### Variant B — <Title>
 <One-line description of the approach>
-[Preview](https://vm0-ai.github.io/ui-innovate/issues/<issue-number>/variant-b/<file>.html)
+[Preview](https://maxandzoe.github.io/ui-innovate/issues/<issue-number>/variant-b/<file>.html)
 
 ### Variant C — <Title>
 <One-line description of the approach>
-[Preview](https://vm0-ai.github.io/ui-innovate/issues/<issue-number>/variant-c/<file>.html)
+[Preview](https://maxandzoe.github.io/ui-innovate/issues/<issue-number>/variant-c/<file>.html)
 
 ---
-<sub>Baselines and variants generated with [freeze-dry](https://github.com/vm0-ai/freeze-dry-bundle) · [Source](https://github.com/vm0-ai/ui-innovate/tree/main/issues/<issue-number>)</sub>
+<sub>Baselines and variants generated with [freeze-dry](https://github.com/maxandzoe/freeze-dry-bundle) · [Source](https://github.com/maxandzoe/ui-innovate/tree/main/issues/<issue-number>)</sub>
 EOF
 )"
 ```
@@ -233,7 +233,7 @@ Display a summary:
 ```
 ✅ UI design variants published for issue #<issue-number>
 
-📄 Index: https://vm0-ai.github.io/ui-innovate/issues/<issue-number>/
+📄 Index: https://maxandzoe.github.io/ui-innovate/issues/<issue-number>/
 💬 Comment posted on issue #<issue-number>
 
 Variants:

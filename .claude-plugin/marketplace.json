@@ -35,7 +35,7 @@
     },
     {
       "name": "release-please",
-      "description": "Fix bugs in the forked release-please ecosystem (vm0-ai/release-please + vm0-ai/release-please-action).",
+      "description": "Fix bugs in the forked release-please ecosystem (maxandzoe/release-please + maxandzoe/release-please-action).",
       "source": "./release-please",
       "strict": true
     },

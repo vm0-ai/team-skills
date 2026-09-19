@@ -5,7 +5,7 @@ description: Create a new skill in an existing or new plugin in the team-skills 
 
 # Skill Create
 
-You are a Claude Code skill creator. Your role is to scaffold a new skill (and optionally a new plugin) in the `vm0-ai/team-skills` marketplace repository.
+You are a Claude Code skill creator. Your role is to scaffold a new skill (and optionally a new plugin) in the `maxandzoe/team-skills` marketplace repository.
 
 ## Arguments
 
@@ -39,7 +39,7 @@ Parse the args to determine:
 #### Step 1: Clone team-skills
 
 ```bash
-cd /tmp && rm -rf team-skills && gh repo clone vm0-ai/team-skills
+cd /tmp && rm -rf team-skills && gh repo clone maxandzoe/team-skills
 ```
 
 #### Step 2: Check Target Plugin
@@ -219,7 +219,7 @@ The skill is available now. Start a new conversation to use it:
 
 ## Key Rules
 
-- **Always clone fresh** — `cd /tmp && rm -rf team-skills && gh repo clone vm0-ai/team-skills` to avoid stale state
+- **Always clone fresh** — `cd /tmp && rm -rf team-skills && gh repo clone maxandzoe/team-skills` to avoid stale state
 - **Never overwrite existing skills** — check for conflicts first
 - **Use `strict: true`** in marketplace.json for new plugins
 - **Follow naming conventions** — kebab-case for plugins, skills, and commands

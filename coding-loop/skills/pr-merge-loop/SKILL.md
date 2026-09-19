@@ -48,7 +48,7 @@ Loop control is handled by a **bash driver script**, not by your memory. You MUS
 Your args are: `$ARGUMENTS`
 
 Extract the PR number from the args above using these rules:
-1. **Args is a URL** containing `/pull/<number>` or `/issues/<number>` → extract `<number>` (e.g., `https://github.com/vm0-ai/vm0/pull/6144` → `6144`)
+1. **Args is a URL** containing `/pull/<number>` or `/issues/<number>` → extract `<number>` (e.g., `https://github.com/maxandzoe/okou/pull/6144` → `6144`)
 2. **Args is a plain number** → use it directly (e.g., `6144`)
 3. **Args is empty** → detect from current branch using `gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number'`
 
@@ -245,7 +245,7 @@ gh pr view <PR_NUMBER> --json state,mergedAt,mergeStateStatus,mergeable
    # Check merge queue entries
    gh api graphql -f query='
    query {
-     repository(owner: "vm0-ai", name: "vm0") {
+     repository(owner: "maxandzoe", name: "okou") {
        mergeQueue(branch: "main") {
          entries(first: 10) {
            nodes {
@@ -269,7 +269,7 @@ gh pr view <PR_NUMBER> --json state,mergedAt,mergeStateStatus,mergeable
    - **Not in queue** (empty result, PR is OPEN but not in queue) → PR was ejected:
      Determine the reason by checking PR timeline:
      ```bash
-     gh api repos/vm0-ai/vm0/pulls/<PR_NUMBER>/timeline --paginate --jq '.[] | select(.event == "removed_from_merge_queue") | {event, created_at, reason: .reason}' | tail -1
+     gh api repos/maxandzoe/okou/pulls/<PR_NUMBER>/timeline --paginate --jq '.[] | select(.event == "removed_from_merge_queue") | {event, created_at, reason: .reason}' | tail -1
      ```
 
      Common ejection reasons:

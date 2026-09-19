@@ -17,7 +17,7 @@ This repository provides structured workflows for software development with AI a
 
 ```bash
 # Add marketplace
-/plugin marketplace add vm0-ai/team-skills
+/plugin marketplace add maxandzoe/team-skills
 
 # Install the plugin
 /plugin install deep-dive@team-skills
@@ -27,7 +27,7 @@ This repository provides structured workflows for software development with AI a
 
 ```bash
 # Clone the repository
-git clone https://github.com/vm0-ai/team-skills.git
+git clone https://github.com/maxandzoe/team-skills.git
 
 # Copy to personal skills directory
 cp -a team-skills/deep-dive ~/.claude/skills/

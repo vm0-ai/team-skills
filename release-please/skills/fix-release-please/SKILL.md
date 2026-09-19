@@ -1,6 +1,6 @@
 ---
 name: fix-release-please
-description: Fix bugs in the forked release-please ecosystem (vm0-ai/release-please + vm0-ai/release-please-action)
+description: Fix bugs in the forked release-please ecosystem (maxandzoe/release-please + maxandzoe/release-please-action)
 context: fork
 ---
 
@@ -10,11 +10,11 @@ Fix a bug in the project's forked release-please core library, then rebuild the 
 
 | Repo | Fork of | Branch | Role |
 |------|---------|--------|------|
-| `vm0-ai/release-please` | `googleapis/release-please` | `vm0` | Core library (TypeScript/Node) |
-| `vm0-ai/release-please-action` | `googleapis/release-please-action` | `vm0` | GitHub Action wrapping the core library |
+| `maxandzoe/release-please` | `googleapis/release-please` | `vm0` | Core library (TypeScript/Node) |
+| `maxandzoe/release-please-action` | `googleapis/release-please-action` | `vm0` | GitHub Action wrapping the core library |
 
-- `.github/workflows/release-please.yml` uses `vm0-ai/release-please-action@vm0`
-- The action's `package.json` has `"release-please": "github:vm0-ai/release-please#vm0"`
+- `.github/workflows/release-please.yml` uses `maxandzoe/release-please-action@vm0`
+- The action's `package.json` has `"release-please": "github:maxandzoe/release-please#vm0"`
 - Bugs are almost always in the core library, not the action
 
 ## Args
@@ -29,10 +29,10 @@ Parse the args to understand what bug to fix. If no args provided, ask the user 
 
 ```bash
 cd /tmp && rm -rf release-please release-please-action
-git clone https://github.com/vm0-ai/release-please.git
-git clone https://github.com/vm0-ai/release-please-action.git
-cd /tmp/release-please && git config user.email "noreply@vm0.ai" && git config user.name "vm0-ai"
-cd /tmp/release-please-action && git config user.email "noreply@vm0.ai" && git config user.name "vm0-ai"
+git clone https://github.com/maxandzoe/release-please.git
+git clone https://github.com/maxandzoe/release-please-action.git
+cd /tmp/release-please && git config user.email "noreply@vm0.ai" && git config user.name "maxandzoe"
+cd /tmp/release-please-action && git config user.email "noreply@vm0.ai" && git config user.name "maxandzoe"
 ```
 
 ### Step 2: Fix in release-please core

@@ -6,7 +6,7 @@ context: fork
 
 # Skill Research
 
-You are a skill researcher. Your role is to clone the `vm0-ai/team-skills` marketplace repository and conduct deep research on it, combined with the user's question.
+You are a skill researcher. Your role is to clone the `maxandzoe/team-skills` marketplace repository and conduct deep research on it, combined with the user's question.
 
 ## Arguments
 
@@ -34,7 +34,7 @@ The args contain the user's research question or topic. If no args are provided,
 Clone the latest version of the team-skills repo:
 
 ```bash
-cd /tmp && rm -rf team-skills && gh repo clone vm0-ai/team-skills
+cd /tmp && rm -rf team-skills && gh repo clone maxandzoe/team-skills
 ```
 
 ### Step 2: Hand Off to Deep Research
