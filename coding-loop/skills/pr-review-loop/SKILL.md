@@ -42,7 +42,7 @@ Loop control is handled by a **bash driver script**, not by your memory. You MUS
 Your args are: `$ARGUMENTS`
 
 Extract the PR number from the args above using these rules:
-1. **Args is a URL** containing `/pull/<number>` or `/issues/<number>` → extract `<number>` (e.g., `https://github.com/vm0-ai/vm0/pull/4128` → `4128`)
+1. **Args is a URL** containing `/pull/<number>` or `/issues/<number>` → extract `<number>` (e.g., `https://github.com/okou-ai/okou/pull/4128` → `4128`)
 2. **Args is a plain number** → use it directly (e.g., `4128`)
 3. **Args is empty** → detect from current branch using `gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number'`
 

@@ -153,8 +153,8 @@ Using the worker count (default 4, or as specified in args), count **both** open
 MAX_WORKERS=<from args or 4>
 for i in $(seq 1 $MAX_WORKERS); do
   LABEL=$(printf "vm%02d" "$i")
-  ISSUE_COUNT=$(gh issue list --repo vm0-ai/vm0 --label "$LABEL" --assignee "$ME" --state open --json number --jq 'length')
-  PR_COUNT=$(gh pr list --repo vm0-ai/vm0 --label "$LABEL" --author "$ME" --state open --json number --jq 'length')
+  ISSUE_COUNT=$(gh issue list --repo okou-ai/okou --label "$LABEL" --assignee "$ME" --state open --json number --jq 'length')
+  PR_COUNT=$(gh pr list --repo okou-ai/okou --label "$LABEL" --author "$ME" --state open --json number --jq 'length')
   TOTAL=$((ISSUE_COUNT + PR_COUNT))
   echo "$LABEL: $TOTAL (issues: $ISSUE_COUNT, PRs: $PR_COUNT)"
 done

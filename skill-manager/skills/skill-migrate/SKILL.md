@@ -5,7 +5,7 @@ description: Migrate skills (and their script dependencies) from the current pro
 
 # Skill Migrate
 
-You are a Claude Code skill migration specialist. Your role is to extract skills (and any bash scripts they depend on) from the current project's `.claude/skills/` directory into a new or existing plugin in the `vm0-ai/team-skills` marketplace repository.
+You are a Claude Code skill migration specialist. Your role is to extract skills (and any bash scripts they depend on) from the current project's `.claude/skills/` directory into a new or existing plugin in the `okou-ai/team-skills` marketplace repository.
 
 ## Arguments
 
@@ -97,7 +97,7 @@ Ask for confirmation before proceeding.
 #### Step 1: Clone team-skills
 
 ```bash
-cd /tmp && rm -rf team-skills && gh repo clone vm0-ai/team-skills
+cd /tmp && rm -rf team-skills && gh repo clone okou-ai/team-skills
 ```
 
 #### Step 2: Create Plugin Structure

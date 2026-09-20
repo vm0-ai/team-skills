@@ -76,7 +76,7 @@ This returns a task_id for monitoring.
 
 Start the independent `vm0-marketing` project using Bash tool with `run_in_background: true` parameter. This runs independently from runner, `prepare.sh`, and `pnpm dev`, so start it early and let it overlap with the rest of the workflow.
 
-Use the sibling checkout if it exists at `../vm0-marketing`; otherwise clone `vm0-ai/vm0-marketing` into `/tmp/vm0-marketing`. Find the first `package.json` directory, install dependencies there, sync env from the marketing repo root, and start its `dev` script on port `3042`:
+Use the sibling checkout if it exists at `../vm0-marketing`; otherwise clone `okou-ai/okou-marketing` into `/tmp/vm0-marketing`. Find the first `package.json` directory, install dependencies there, sync env from the marketing repo root, and start its `dev` script on port `3042`:
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
@@ -88,7 +88,7 @@ else
   MARKETING_ROOT="/tmp/vm0-marketing"
   if [ ! -d "$MARKETING_ROOT/.git" ]; then
     rm -rf "$MARKETING_ROOT"
-    gh repo clone vm0-ai/vm0-marketing "$MARKETING_ROOT"
+    gh repo clone okou-ai/okou-marketing "$MARKETING_ROOT"
   fi
 fi
 
