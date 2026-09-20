@@ -29,7 +29,7 @@ gh run list --repo "$REPO" --workflow turbo.yml --event merge_group --limit 30 \
 # 2. Merge queue
 gh api graphql -f query='
 {
-  repository(owner: "maxandzoe", name: "okou") {
+  repository(owner: "okou-ai", name: "okou") {
     mergeQueue(branch: "main") {
       entries(first: 20) {
         nodes {

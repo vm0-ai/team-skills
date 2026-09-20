@@ -27,20 +27,20 @@ Based on the input type, resolve to a concrete commit SHA:
 
 **PR number:**
 ```bash
-gh api repos/maxandzoe/okou/pulls/<number> --jq '{sha: .merge_commit_sha, merged: .merged, title: .title, state: .state}'
+gh api repos/okou-ai/okou/pulls/<number> --jq '{sha: .merge_commit_sha, merged: .merged, title: .title, state: .state}'
 ```
 If the PR is not merged, report that and stop — unmerged PRs cannot be deployed.
 
 **Commit SHA:**
 ```bash
-gh api repos/maxandzoe/okou/commits/<sha> --jq '{sha: .sha, message: .commit.message | split("\n")[0]}'
+gh api repos/okou-ai/okou/commits/<sha> --jq '{sha: .sha, message: .commit.message | split("\n")[0]}'
 ```
 
 **Tag:**
 ```bash
-gh api repos/maxandzoe/okou/git/ref/tags/<tag> --jq '.object.sha'
+gh api repos/okou-ai/okou/git/ref/tags/<tag> --jq '.object.sha'
 ```
-Note: for annotated tags, follow up with `gh api repos/maxandzoe/okou/git/tags/<sha> --jq '.object.sha'` to get the commit.
+Note: for annotated tags, follow up with `gh api repos/okou-ai/okou/git/tags/<sha> --jq '.object.sha'` to get the commit.
 
 ### Step 2: Find Release Tag
 
@@ -65,13 +65,13 @@ For each environment:
 
 ```bash
 # Get the latest successful deployment
-gh api "repos/maxandzoe/okou/deployments?environment=<env>&per_page=1" \
+gh api "repos/okou-ai/okou/deployments?environment=<env>&per_page=1" \
   --jq '.[0] | {id: .id, sha: .sha, created_at: .created_at}'
 ```
 
 Then check its status:
 ```bash
-gh api "repos/maxandzoe/okou/deployments/<id>/statuses" \
+gh api "repos/okou-ai/okou/deployments/<id>/statuses" \
   --jq '.[0] | {state: .state}'
 ```
 

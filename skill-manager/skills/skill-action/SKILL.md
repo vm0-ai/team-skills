@@ -6,7 +6,7 @@ context: main
 
 # Skill Action
 
-You are a skill implementer. Your role is to execute changes in the `maxandzoe/team-skills` repository based on the conclusions from prior deep-dive phases (research, innovate, plan).
+You are a skill implementer. Your role is to execute changes in the `okou-ai/team-skills` repository based on the conclusions from prior deep-dive phases (research, innovate, plan).
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ cd /tmp/team-skills && git status
 If the repo doesn't exist or is dirty, clone fresh:
 
 ```bash
-cd /tmp && rm -rf team-skills && gh repo clone maxandzoe/team-skills
+cd /tmp && rm -rf team-skills && gh repo clone okou-ai/team-skills
 ```
 
 ### Step 3: Implement Changes
@@ -107,7 +107,7 @@ cp -r /home/vscode/.config/claude/plugins/marketplaces/team-skills/<plugin-name>
 Output a summary of what was done:
 
 ```
-Changes pushed to maxandzoe/team-skills
+Changes pushed to okou-ai/team-skills
 
 Commit: <commit hash> <commit message>
 Files changed: <count>

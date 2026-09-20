@@ -134,5 +134,5 @@ gh issue create \
 After creation, display the issue URL:
 
 ```
-Bug report created: https://github.com/maxandzoe/okou/issues/<number>
+Bug report created: https://github.com/okou-ai/okou/issues/<number>
 ```
